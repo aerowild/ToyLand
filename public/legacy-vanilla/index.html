@@ -1,0 +1,1282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toy Land Play Lab - Awesome Toy Games & Cut-Outs</title>
+    <meta name="description" content="A playful, interactive toy playground featuring see-saws, cookies, time-travel, dot-trays, and carrot farms. Fully playable online and printable at home.">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Header Controls -->
+    <header>
+        <div class="logo-container">
+            <span class="logo-icon">🎈</span>
+            <h1>Toy Land Play Lab</h1>
+        </div>
+        <div class="header-controls" style="display:flex; align-items:center; gap:15px;">
+            <div id="coin-counter-header" style="display:flex; align-items:center; gap:6px; background:#fef08a; border:3px solid #eab308; padding:6px 16px; border-radius:9999px; font-weight:800; color:#854d0e; font-size:1.05rem; box-shadow:0 3px 0 #eab308; transition: transform 0.2s ease;">
+                <span>🪙</span> <span id="header-stars-count">0 Stars</span>
+            </div>
+            <button id="sound-toggle" class="bubble-btn" onclick="toggleSound(!soundEnabled)">🔊 Sound On</button>
+        </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-container" id="main-nav">
+        <button class="tab-btn active" onclick="switchView('dashboard')">🏠 Home Playground</button>
+        <button class="tab-btn" onclick="switchView('print')">🖨️ Cut-Out Craft Kit</button>
+        <button class="tab-btn" onclick="switchView('parent')">🏆 Progress & Stats</button>
+        <button class="tab-btn" onclick="switchView('shop')">🏪 Toy Shop</button>
+    </nav>
+
+    <!-- Main Workspace -->
+    <main>
+
+        <!-- DASHBOARD VIEW -->
+        <section id="view-dashboard" class="lab-panel active">
+            <div class="lab-header">
+                <h2 class="lab-title">👋 Welcome to Toy Land Play Lab!</h2>
+            </div>
+            <p class="lab-description" style="font-size: 1.25rem; margin-bottom: 20px;">
+                Choose an adventure below to start playing and learning visual math! Let's explore.
+            </p>
+            
+            <!-- 3D HERO ADVENTURE BANNER -->
+            <div class="hero-3d-banner" style="background: linear-gradient(135deg, #4f46e5, #7c3aed, #06b6d4); border-radius: 24px; padding: 30px; margin-bottom: 35px; color: white; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.35); position: relative; overflow: hidden; border: 4px solid #a78bfa;">
+                <div style="position: absolute; right: -30px; bottom: -30px; font-size: 10rem; opacity: 0.12; user-select: none;">🎮</div>
+                <div style="flex: 1; min-width: 280px; z-index: 1;">
+                    <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 9999px; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">🌟 Featured 3D Game</div>
+                    <h2 style="font-family: 'Outfit', sans-serif; font-size: 2.2rem; font-weight: 900; margin: 0 0 10px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.15);">3D Math Puzzle Quest</h2>
+                    <p style="font-size: 1.15rem; margin: 0 0 15px 0; opacity: 0.95; line-height: 1.5;">
+                        Evolve your hero from a stick figure to a legendary champion by solving 3D visual math puzzles!
+                    </p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 0.9rem; font-weight: 600; margin-bottom: 5px;">
+                        <span style="background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 8px;">➕ Addition Bridges</span>
+                        <span style="background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 8px;">➖ Stair Subtraction</span>
+                        <span style="background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 8px;">✂️ Log Take Out</span>
+                        <span style="background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 8px;">✖️ Multiplication Grids</span>
+                        <span style="background: rgba(255,255,255,0.15); padding: 4px 10px; border-radius: 8px;">⚖️ Equation Balancer</span>
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 200px; z-index: 1; margin: 0 auto;">
+                    <div style="font-size: 4.5rem; margin-bottom: 10px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.25));">🦸‍♂️</div>
+                    <button class="bubble-btn" style="background: #facc15; color: #1e293b; border: 4px solid #eab308; box-shadow: 0 6px 0 #ca8a04; font-size: 1.25rem; font-weight: 900; padding: 12px 28px; border-radius: 18px; cursor: pointer; transition: transform 0.2s ease;" onclick="launchEvolution3D()">
+                        🚀 PLAY IN 3D NOW!
+                    </button>
+                </div>
+            </div>
+            
+            <h3 class="category-header" style="color:var(--color-primary); margin-top:20px; font-weight:800; border-bottom:3px dashed var(--color-primary); padding-bottom:5px;">⚖️ Balance & Addition</h3>
+            <div class="print-options-grid" style="margin-bottom:30px;">
+                <div class="print-card" onclick="switchView('lab1')" style="cursor: pointer;">
+                    <div class="print-card-icon">⚖️</div>
+                    <div class="print-card-title">See-Saw Balance</div>
+                    <p style="font-size:0.92rem; color:#475569;">Balance the see-saw using blocks! Level both sides to unlock the secret fact family doors.</p>
+                    <button class="bubble-btn primary" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+                <div class="print-card" onclick="switchView('lab6')" style="cursor: pointer;">
+                    <div class="print-card-icon">🐸</div>
+                    <div class="print-card-title">Frog Lilypad Jumper</div>
+                    <p style="font-size:0.92rem; color:#475569;">Hop the frog step-by-step along a number line to solve visual addition and subtraction!</p>
+                    <button class="bubble-btn primary" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+                <div class="print-card" onclick="switchView('lab11')" style="cursor: pointer;">
+                    <div class="print-card-icon">🤹</div>
+                    <div class="print-card-title">Shape Balance Riddles</div>
+                    <p style="font-size:0.92rem; color:#475569;">If 1 star equals 2 triangles, how many triangles balance 3 stars? Find the secret ratios!</p>
+                    <button class="bubble-btn primary" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+            </div>
+
+            <h3 class="category-header" style="color:var(--color-warning); font-weight:800; border-bottom:3px dashed var(--color-warning); padding-bottom:5px;">🍪 Subtraction & Word Problems</h3>
+            <div class="print-options-grid" style="margin-bottom:30px;">
+                <div class="print-card" onclick="switchView('lab2')" style="cursor: pointer;">
+                    <div class="print-card-icon">🍪</div>
+                    <div class="print-card-title">Cookie Monster</div>
+                    <p style="font-size:0.92rem; color:#475569;">Feed cookies to the monster! Learn subtraction and see what happens when there's a cookie deficit.</p>
+                    <button class="bubble-btn warning" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+                <div class="print-card" onclick="switchView('lab3')" style="cursor: pointer;">
+                    <div class="print-card-icon">🌳</div>
+                    <div class="print-card-title">Tree Time Machine</div>
+                    <p style="font-size:0.92rem; color:#475569;">Travel back and forth through time! Deduce how many birds were initially on the branches.</p>
+                    <button class="bubble-btn warning" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+                <div class="print-card" onclick="switchView('lab12')" style="cursor: pointer;">
+                    <div class="print-card-icon">🐊</div>
+                    <div class="print-card-title">Alligator Comparisons</div>
+                    <p style="font-size:0.92rem; color:#475569;">Feed the hungry alligator! Point the gator's mouth toward the bowl with the larger group of fish.</p>
+                    <button class="bubble-btn warning" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+            </div>
+
+            <h3 class="category-header" style="color:var(--color-danger); font-weight:800; border-bottom:3px dashed var(--color-danger); padding-bottom:5px;">🧮 Grouping & Multiplication</h3>
+            <div class="print-options-grid" style="margin-bottom:30px;">
+                <div class="print-card" onclick="switchView('lab4')" style="cursor: pointer;">
+                    <div class="print-card-icon">🧮</div>
+                    <div class="print-card-title">Magic Tray Snapper</div>
+                    <p style="font-size:0.92rem; color:#475569;">Snap dots into trays to fill 10-frames! See how grouping numbers by tens makes arithmetic fast.</p>
+                    <button class="bubble-btn danger" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+                <div class="print-card" onclick="switchView('lab5')" style="cursor: pointer;">
+                    <div class="print-card-icon">🥕</div>
+                    <div class="print-card-title">Carrot Farming</div>
+                    <p style="font-size:0.92rem; color:#475569;">Plant rows and columns in the garden! Visual representation of multiplication and commutative grids.</p>
+                    <button class="bubble-btn danger" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+                <div class="print-card" onclick="switchView('lab13')" style="cursor: pointer;">
+                    <div class="print-card-icon">🎈</div>
+                    <div class="print-card-title">Skip Count Balloon Pop</div>
+                    <p style="font-size:0.92rem; color:#475569;">Spot the skip-counting pattern! Pop the floating balloon containing the missing number sequence.</p>
+                    <button class="bubble-btn danger" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+            </div>
+
+            <h3 class="category-header" style="color:var(--color-accent); font-weight:800; border-bottom:3px dashed var(--color-accent); padding-bottom:5px;">📐 Geometry & Measurements</h3>
+            <div class="print-options-grid" style="margin-bottom:20px;">
+                <div class="print-card" onclick="switchView('lab7')" style="cursor: pointer;">
+                    <div class="print-card-icon">🍕</div>
+                    <div class="print-card-title">Pizza Fractions</div>
+                    <p style="font-size:0.92rem; color:#475569;">Slice and garnish pizzas into halves, thirds, or fourths. Serve the exact slices ordered!</p>
+                    <button class="bubble-btn accent" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+                <div class="print-card" onclick="switchView('lab8')" style="cursor: pointer;">
+                    <div class="print-card-icon">⏰</div>
+                    <div class="print-card-title">Telling Time Clock</div>
+                    <p style="font-size:0.92rem; color:#475569;">Drag the hour and minute hands! Match the analog clock time to target digital cards.</p>
+                    <button class="bubble-btn accent" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+                <div class="print-card" onclick="switchView('lab9')" style="cursor: pointer;">
+                    <div class="print-card-icon">📐</div>
+                    <div class="print-card-title">Tangram Builder</div>
+                    <p style="font-size:0.92rem; color:#475569;">Drag and rotate geometric blocks! Snap triangles, squares, and hexagons into silhouettes.</p>
+                    <button class="bubble-btn accent" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+                <div class="print-card" onclick="switchView('lab10')" style="cursor: pointer;">
+                    <div class="print-card-icon">🪙</div>
+                    <div class="print-card-title">Money Toy Market</div>
+                    <p style="font-size:0.92rem; color:#475569;">Buy fun toys using exact coins! Drop quarters, dimes, nickels, and pennies on the counter.</p>
+                    <button class="bubble-btn accent" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+                <div class="print-card" onclick="switchView('lab14')" style="cursor: pointer;">
+                    <div class="print-card-icon">📏</div>
+                    <div class="print-card-title">Measurement Ruler</div>
+                    <p style="font-size:0.92rem; color:#475569;">Drag the wooden ruler to line up and measure the lengths of various bugs and pencils!</p>
+                    <button class="bubble-btn accent" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+            </div>
+
+            <h3 class="category-header" style="color:var(--color-success); font-weight:800; border-bottom:3px dashed var(--color-success); padding-bottom:5px; margin-top:20px;">🦸‍♂️ Character Evolution</h3>
+            <div class="print-options-grid" style="margin-bottom:20px;">
+                <div class="print-card" onclick="switchView('lab15')" style="cursor: pointer;">
+                    <div class="print-card-icon">🦸‍♂️</div>
+                    <div class="print-card-title">Evolution Adventure</div>
+                    <p style="font-size:0.92rem; color:#475569;">Evolve from a stick to a hero by solving 20 stages of visual math & geometry puzzles!</p>
+                    <button class="bubble-btn success" style="padding: 6px 12px; font-size: 0.9rem; margin-top: auto;">Play Game</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAB 1: BALANCE SEE-SAW -->
+        <section id="view-lab1" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">⚖️ Adventure 1: The Seesaw Balance</h2>
+                <button class="bubble-btn warning" onclick="resetLab1()">🔄 Reset</button>
+            <button class="hint-buy-btn" onclick="buyHint('seesaw')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Let's level the see-saw! Put block weights on the left and right pans. Can you balance the see-saw and find the number friends who live in the secret clubhouse?
+            </p>
+
+            <div class="lab1-container">
+                <!-- Status text at the top to prevent pans from overlapping it -->
+                <div class="balance-status" id="scale-status">Pick a see-saw adventure below!</div>
+                
+                <!-- Persistent container for adding blocks -->
+                <div id="add-block-controls" style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; min-height: 50px; margin-bottom: 10px;"></div>
+
+                <div class="scale-system">
+                    <div class="scale-fulcrum"></div>
+                    <div class="scale-beam" id="scale-beam">
+                        <div class="scale-left-hanger">
+                            <div class="scale-pan" id="left-pan">
+                                <div class="pan-content" id="left-pan-content"></div>
+                            </div>
+                        </div>
+                        <div class="scale-right-hanger">
+                            <div class="scale-pan" id="right-pan">
+                                <div class="pan-content" id="right-pan-content"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scale-controls" style="margin-top: 15px; display: flex; flex-direction: column; gap: 10px; width: 100%; align-items: center;">
+                    <div style="font-weight: 700; color: #475569; font-size: 1.1rem;">➕ Level by Adding (Putting Toys On):</div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                        <button class="bubble-btn primary" onclick="loadLab1Problem(6, 5, false)">Adventure: 6 & 5 vs 5 & 6</button>
+                        <button class="bubble-btn accent" onclick="loadLab1Problem(8, 4, false)">Adventure: 8 & 4 vs 4 & 8</button>
+                        <button class="bubble-btn success" onclick="loadLab1Problem(7, 3, false)">Adventure: 7 & 3 vs 3 & 7</button>
+                    </div>
+                    <div style="font-weight: 700; color: #475569; font-size: 1.1rem; margin-top: 10px;">✂️ Level by Slicing (Taking Toys Away):</div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                        <button class="bubble-btn danger" onclick="loadLab1Problem(6, 5, true, 'sub1')">Adventure: 11 take away 6</button>
+                        <button class="bubble-btn warning" onclick="loadLab1Problem(6, 5, true, 'sub2')">Adventure: 11 take away 5</button>
+                        <button class="bubble-btn danger" onclick="loadLab1Problem(8, 4, true, 'sub1')">Adventure: 12 take away 8</button>
+                        <button class="bubble-btn warning" onclick="loadLab1Problem(7, 3, true, 'sub1')">Adventure: 10 take away 7</button>
+                    </div>
+                </div>
+
+                <!-- Fact Family House -->
+                <div class="fact-family-house" id="fact-family-house" style="display: none;">
+                    <div class="house-roof"></div>
+                    <div class="roof-numbers">
+                        <div class="roof-number-box top" id="house-top-num">11</div>
+                        <div class="roof-number-box" id="house-left-num">6</div>
+                        <div class="roof-number-box" id="house-right-num">5</div>
+                    </div>
+                    <h3 style="margin-top: 15px; text-align: center;">Secret Clubhouse! Click a window to see the number friends:</h3>
+                    <div class="house-windows">
+                        <div class="house-window" id="window-add1" onclick="selectFactFamilyWindow('add1')">6 + 5 = 11</div>
+                        <div class="house-window" id="window-add2" onclick="selectFactFamilyWindow('add2')">5 + 6 = 11</div>
+                        <div class="house-window" id="window-sub1" onclick="selectFactFamilyWindow('sub1')">11 - 6 = 5</div>
+                        <div class="house-window" id="window-sub2" onclick="selectFactFamilyWindow('sub2')">11 - 5 = 6</div>
+                    </div>
+                </div>
+
+                <!-- Adventure Builder -->
+                <div class="adventure-builder">
+                    <div class="builder-title">🛠️ Design Your Own See-Saw Adventure</div>
+                    <div class="builder-grid">
+                        <div class="builder-cell">
+                            <label for="scale-x">Blue Block weight:</label>
+                            <select id="scale-x">
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6" selected>6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                            </select>
+                        </div>
+                        <div class="builder-cell">
+                            <label for="scale-y">Red Block weight:</label>
+                            <select id="scale-y">
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5" selected>5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:10px; width:100%; margin-top: 5px;">
+                        <button class="bubble-btn primary" style="flex:1; padding:8px;" onclick="loadLab1Problem(parseInt(document.getElementById('scale-x').value), parseInt(document.getElementById('scale-y').value), false)">➕ Adding Game</button>
+                        <button class="bubble-btn danger" style="flex:1; padding:8px;" onclick="loadLab1Problem(parseInt(document.getElementById('scale-x').value), parseInt(document.getElementById('scale-y').value), true, 'sub1')">✂️ Slicing Game</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAB 2: COOKIE MONSTER -->
+        <section id="view-lab2" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">🍪 Adventure 2: Cookie Monster Feed Time</h2>
+                <button class="bubble-btn warning" onclick="resetLab2()">🔄 Reset</button>
+            <button class="hint-buy-btn" onclick="buyHint('cookies')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Meet Cookie, the hungry monster! Drag or click cookies to feed him. Discover how many cookies are left on the plate, or what happens when he wants more cookies than you have!
+            </p>
+
+            <div class="lab2-container">
+                <div class="cookie-bench">
+                    <div class="cookie-plate">
+                        <h3 style="color:#0f172a;">Fresh Cookies on Plate (<span id="plate-count">6</span>)</h3>
+                        <div class="plate-visual" id="cookie-plate-area" ondragover="allowDrop(event)" ondrop="dropOnPlate(event)">
+                            <!-- Cookies spawned here -->
+                        </div>
+                    </div>
+
+                    <div class="cookie-monster-box">
+                        <div class="monster-bubble" id="monster-bubble">Hi! I want to eat cookies. Can you feed me?</div>
+                        <div class="cookie-monster" id="cookie-monster" ondragover="allowDrop(event)" ondrop="dropOnMonster(event)">👾</div>
+                        <div style="font-weight: bold; color: #475569;">Monster ate: <span id="eaten-count">0</span></div>
+                    </div>
+                </div>
+
+                <div class="subtraction-formula-display" id="subtraction-formula">
+                    Pick a feeding adventure below!
+                </div>
+
+                <div class="subtraction-controls">
+                    <button class="bubble-btn primary" onclick="loadLab2Challenge(6, 5)">Give 5 out of 6</button>
+                    <button class="bubble-btn danger" onclick="loadLab2Challenge(5, 6)">Give 6 out of 5</button>
+                    <button class="bubble-btn success" onclick="loadLab2Challenge(8, 3)">Give 3 out of 8</button>
+                </div>
+
+                <!-- Adventure Builder -->
+                <div class="adventure-builder">
+                    <div class="builder-title">🛠️ Design Your Own Cookie Game</div>
+                    <div class="builder-grid">
+                        <div class="builder-cell">
+                            <label for="cookie-x">Cookies on plate:</label>
+                            <select id="cookie-x">
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6" selected>6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+                        <div class="builder-cell">
+                            <label for="cookie-y">Cookies Monster wants:</label>
+                            <select id="cookie-y">
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5" selected>5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10">10</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="bubble-btn warning" style="width:100%; padding:8px; margin-top: 5px;" onclick="loadLab2Challenge(parseInt(document.getElementById('cookie-x').value), parseInt(document.getElementById('cookie-y').value))">🍪 Start Feeding Game</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAB 3: BIRD TREE -->
+        <section id="view-lab3" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">🌳 Adventure 3: Tree Time Machine</h2>
+                <button class="bubble-btn warning" onclick="resetLab3()">🔄 Reset</button>
+            <button class="hint-buy-btn" onclick="buyHint('birds')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Oh no, some birds flew away! Let's slide our Tree Time Machine back to the past to count how many birds were on the tree at the very start!
+            </p>
+
+            <div class="lab3-container">
+                <div class="tree-scene" id="tree-scene">
+                    <div class="tree-trunk"></div>
+                    <div class="tree-leaves"></div>
+                    <div class="tree-branch-left"></div>
+                    <div class="tree-branch-right"></div>
+                    <!-- Birds will spawn here -->
+                </div>
+
+                <div class="timeline-panel">
+                    <span style="font-weight: 700; font-size: 1.1rem;">⏳ Drag to Time-Travel:</span>
+                    <div class="timeline-slider-wrapper">
+                        <input type="range" min="0" max="2" value="2" class="timeline-slider" id="time-slider" oninput="timeTravelSlide(this.value)">
+                    </div>
+                    <div class="timeline-labels">
+                        <span class="timeline-label" id="time-label-0" onclick="setTimeSlider(0)">⏮️ Start (Past)</span>
+                        <span class="timeline-label" id="time-label-1" onclick="setTimeSlider(1)">💨 Fly Away (Change)</span>
+                        <span class="timeline-label active" id="time-label-2" onclick="setTimeSlider(2)">⏭️ Now (Present)</span>
+                    </div>
+                </div>
+
+                <div class="subtraction-formula-display" id="bird-story-text" style="font-size: 1.1rem; line-height: 1.5; max-width: 600px;">
+                    Loading story...
+                </div>
+
+                <div class="bird-question-panel" id="bird-question" style="display: none;">
+                    <h3 style="color:#0f172a;">How many birds were on the tree at the very START?</h3>
+                    <div class="option-grid" id="bird-options">
+                        <!-- Option buttons will go here -->
+                    </div>
+                </div>
+
+                <!-- Adventure Builder -->
+                <div class="adventure-builder">
+                    <div class="builder-title">🛠️ Design Your Own Bird Story</div>
+                    <div class="builder-grid">
+                        <div class="builder-cell">
+                            <label for="bird-x">Birds left on tree now:</label>
+                            <select id="bird-x">
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                                <option value="10" selected>10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                        </div>
+                        <div class="builder-cell">
+                            <label for="bird-y">Birds that fly away:</label>
+                            <select id="bird-y">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3" selected>3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="bubble-btn success" style="width:100%; padding:8px; margin-top: 5px;" onclick="loadLab3Problem(parseInt(document.getElementById('bird-x').value), parseInt(document.getElementById('bird-y').value))">🌳 Start Time Machine</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAB 4: TEN-FRAMES -->
+        <section id="view-lab4" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">🧮 Adventure 4: Magic Tray Snapper</h2>
+                <button class="bubble-btn warning" onclick="resetLab4()">🔄 Reset</button>
+            <button class="hint-buy-btn" onclick="buyHint('snapper')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Let's fill up our 10-dot trays! Grouping dots into full trays of 10 makes counting big numbers super easy. Drag or pop dots to snap them into place!
+            </p>
+
+            <div class="lab4-container">
+                <div class="scale-controls">
+                    <button class="bubble-btn primary" onclick="loadLab4Problem('add', 8, 5)">Snap: 8 & 5</button>
+                    <button class="bubble-btn success" onclick="loadLab4Problem('add', 7, 6)">Snap: 7 & 6</button>
+                    <button class="bubble-btn danger" onclick="loadLab4Problem('sub', 14, 6)">Pop: 6 out of 14</button>
+                    <button class="bubble-btn accent" onclick="loadLab4Problem('sub', 13, 5)">Pop: 5 out of 13</button>
+                </div>
+
+                <div class="ten-frames-area">
+                    <div class="ten-frame-box">
+                        <div class="ten-frame-title">Tray 1 (Fits 10 dots)</div>
+                        <div class="ten-frame-grid" id="ten-frame-1">
+                            <!-- Slots created by JS -->
+                        </div>
+                    </div>
+                    <div class="ten-frame-box">
+                        <div class="ten-frame-title" id="frame-2-title">Tray 2</div>
+                        <div class="ten-frame-grid" id="ten-frame-2">
+                            <!-- Slots created by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="equation-step-by-step" id="eq-steps">
+                    <div style="font-weight: 700; font-size: 1.1rem; color: #1e293b; text-align: center; border-bottom: 2px dashed #cbd5e1; padding-bottom: 8px;">
+                        How the Snapping Toy Works:
+                    </div>
+                    <div class="step-row" id="step-row-1">
+                        <span>Start State:</span>
+                        <span class="step-math" id="step-math-1">8 + 5 = ?</span>
+                    </div>
+                    <div class="step-row" id="step-row-2">
+                        <span id="step-desc-2">Grouping to fill Tray 1:</span>
+                        <span class="step-math" id="step-math-2">8 + 2 + 3</span>
+                    </div>
+                    <div class="step-row" id="step-row-3">
+                        <span>Snapped Count:</span>
+                        <span class="step-math" id="step-math-3">10 + 3 = 13</span>
+                    </div>
+                </div>
+
+                <div id="ten-frame-instruction" style="font-size: 1.25rem; font-weight: 700; color: var(--color-primary); text-align: center; min-height: 30px;">
+                    Click a snapping adventure above to start!
+                </div>
+
+                <!-- Adventure Builder -->
+                <div class="adventure-builder">
+                    <div class="builder-title">🛠️ Design Your Own Snapping Game</div>
+                    <div class="builder-grid">
+                        <div class="builder-cell">
+                            <label for="snap-x">Tray 1 Dots (Adding) / Total Dots (Popping):</label>
+                            <select id="snap-x">
+                                <option value="5">5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8" selected>8</option>
+                                <option value="9">9</option>
+                                <option value="11">11 (Popping only)</option>
+                                <option value="12">12 (Popping only)</option>
+                                <option value="13">13 (Popping only)</option>
+                                <option value="14">14 (Popping only)</option>
+                                <option value="15">15 (Popping only)</option>
+                                <option value="16">16 (Popping only)</option>
+                                <option value="17">17 (Popping only)</option>
+                                <option value="18">18 (Popping only)</option>
+                            </select>
+                        </div>
+                        <div class="builder-cell">
+                            <label for="snap-y">Tray 2 Dots / Dots to pop:</label>
+                            <select id="snap-y">
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5" selected>5</option>
+                                <option value="6">6</option>
+                                <option value="7">7</option>
+                                <option value="8">8</option>
+                                <option value="9">9</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:10px; width:100%; margin-top: 5px;">
+                        <button class="bubble-btn primary" style="flex:1; padding:8px;" onclick="startCustomSnapAdd()">➕ Snapping Game</button>
+                        <button class="bubble-btn danger" style="flex:1; padding:8px;" onclick="startCustomSnapSub()">✂️ Popping Game</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LAB 5: ARRAY GARDEN -->
+        <section id="view-lab5" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">🥕 Adventure 5: The Carrot Farming Grid</h2>
+                <button class="bubble-btn warning" onclick="resetLab5()">🔄 Reset</button>
+            <button class="hint-buy-btn" onclick="buyHint('farm')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Plant a vegetable patch in grid patterns! Arrange your plants in rows and columns to see how grouping makes counting fast.
+            </p>
+
+            <div class="lab5-container">
+                <div class="garden-controls">
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;">
+                        <div class="dimension-selector">
+                            <label for="garden-rows">Rows (Lines):</label>
+                            <select id="garden-rows" onchange="updateGarden()">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3" selected>3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+                        <div class="dimension-selector">
+                            <label for="garden-cols">Columns (Plants in each row):</label>
+                            <select id="garden-cols" onchange="updateGarden()">
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4" selected>4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+                        <div class="dimension-selector">
+                            <label for="garden-item">Plant Type:</label>
+                            <select id="garden-item" onchange="updateGarden()">
+                                <option value="🥕">Carrots 🥕</option>
+                                <option value="🍓">Strawberries 🍓</option>
+                                <option value="🍅">Tomatoes 🍅</option>
+                                <option value="🍉">Watermelons 🍉</option>
+                                <option value="🌻">Sunflowers 🌻</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="view-modes">
+                        <button class="bubble-btn active" id="btn-mode-none" onclick="setGardenMode('none')">🎨 Plain Grid</button>
+                        <button class="bubble-btn" id="btn-mode-rows" onclick="setGardenMode('rows')">↔️ View as Rows</button>
+                        <button class="bubble-btn" id="btn-mode-cols" onclick="setGardenMode('cols')">↕️ View as Columns</button>
+                    </div>
+                </div>
+
+                <div class="garden-grid-outer">
+                    <div class="garden-grid" id="garden-grid">
+                        <!-- Soil cells generated by JS -->
+                    </div>
+                </div>
+
+                <div class="subtraction-formula-display" id="garden-math" style="width: 100%; max-width: 600px; text-align: center; font-size: 1.3rem;">
+                    3 rows of 4 carrots = 12 total.
+                </div>
+            </div>
+        </section>
+
+        <!-- LAB 6: FROG JUMPER -->
+        <section id="view-lab6" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">🐸 Adventure 6: Frog Lilypad Jumper</h2>
+                <button class="bubble-btn warning" onclick="loadLab6Problem()">🔄 Reset</button>
+                <button class="bubble-btn primary" onclick="switchView('dashboard')">🏠 Home</button>
+            <button class="hint-buy-btn" onclick="buyHint('frogger')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Hop the frog along the lilypads to solve the visual math riddle!
+            </p>
+            <div class="lab1-container" style="gap: 20px;">
+                <div class="pond-container" style="position: relative; width: 100%; max-width: 800px; height: 160px; background: #e0f2fe; border: 4px solid var(--border-color); border-radius: 24px; overflow: hidden; margin-top: 10px; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 4px 10px rgba(0,0,0,0.1);">
+                    <div class="lilypad-line" id="lilypad-line" style="display: flex; gap: 8px; justify-content: space-between; width: 90%; position: relative;">
+                        <!-- Lilypads generated by JS -->
+                    </div>
+                </div>
+                
+                <div class="subtraction-formula-display" id="frog-formula" style="font-size: 1.5rem; text-align: center;">
+                    7 + 5 = ?
+                </div>
+                
+                <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;">
+                    <button class="bubble-btn danger" style="padding: 10px 20px; font-size: 1.05rem;" onclick="jumpFrog(-1)">👈 Jump Back (-1)</button>
+                    <button class="bubble-btn primary" style="padding: 10px 20px; font-size: 1.05rem;" onclick="jumpFrog(1)">Jump Forward (+1) 👉</button>
+                    <button class="bubble-btn success" style="padding: 10px 22px; font-size: 1.1rem;" onclick="checkFrogPosition()">✨ Check Answer</button>
+                </div>
+                <div id="frog-status" style="font-weight: 700; font-size: 1.1rem; min-height: 25px;"></div>
+            </div>
+        </section>
+
+        <!-- LAB 7: PIZZA FRACTIONS -->
+        <section id="view-lab7" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">🍕 Adventure 7: Pizza Party Fraction</h2>
+                <button class="bubble-btn warning" onclick="loadLab7Problem()">🔄 Reset</button>
+                <button class="bubble-btn primary" onclick="switchView('dashboard')">🏠 Home</button>
+            <button class="hint-buy-btn" onclick="buyHint('pizza')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Cut the pizza into equal parts, add toppings, and drag/click slices to serve the customer!
+            </p>
+            <div class="lab1-container" style="gap: 15px;">
+                <div id="pizza-customer" style="font-size: 1.2rem; font-weight: 700; background: #f8fafc; padding: 12px 24px; border-radius: 18px; border: 3px dashed var(--border-color); width: 100%; max-width: 600px; text-align: center;">
+                    Loading order...
+                </div>
+                
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                    <button class="bubble-btn primary" onclick="cutPizza(2)">✂️ Split in Halves (2 Slices)</button>
+                    <button class="bubble-btn warning" onclick="cutPizza(3)">✂️ Split in Thirds (3 Slices)</button>
+                    <button class="bubble-btn accent" onclick="cutPizza(4)">✂️ Split in Fourths (4 Slices)</button>
+                </div>
+                
+                <div class="pizza-workbench" style="display: flex; gap: 30px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 15px; width: 100%;">
+                    <!-- Pizza plate -->
+                    <div class="pizza-plate" style="position: relative; width: 200px; height: 200px; border-radius: 50%; background: #e2e8f0; border: 6px solid var(--border-color); display: flex; justify-content: center; align-items: center; box-shadow: 0 6px 0 var(--border-color);">
+                        <div class="pizza-dough" id="pizza-dough" style="width: 170px; height: 170px; border-radius: 50%; background: #fed7aa; border: 10px solid #f97316; box-shadow: inset 0 0 10px #ea580c; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; transition: all 0.3s ease;">
+                            <!-- Slices grid lines -->
+                            <div id="pizza-cut-lines" style="position: absolute; width: 100%; height: 100%; pointer-events: none;"></div>
+                            <!-- Toppings container -->
+                            <div id="pizza-toppings" style="position: absolute; width: 100%; height: 100%; pointer-events: none;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Customer Delivery Plate -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                        <div style="font-weight: 700; color: #64748b;">Customer's Plate:</div>
+                        <div id="pizza-delivery-tray" style="border: 4px dashed var(--border-color); border-radius: 20px; width: 180px; height: 180px; display: flex; flex-direction: column; gap: 5px; justify-content: center; align-items: center; background: white; font-weight: 700; color: #94a3b8; font-size: 0.9rem; text-align: center; padding: 10px; box-sizing: border-box; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);">
+                            No slices selected
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                    <button class="bubble-btn" style="padding: 6px 12px; font-size: 0.95rem; background: #fff;" onclick="addPizzaTopping('🍕')">🔴 Pepperoni</button>
+                    <button class="bubble-btn" style="padding: 6px 12px; font-size: 0.95rem; background: #fff;" onclick="addPizzaTopping('🍍')">🍍 Pineapple</button>
+                    <button class="bubble-btn" style="padding: 6px 12px; font-size: 0.95rem; background: #fff;" onclick="addPizzaTopping('🍄')">🍄 Mushroom</button>
+                    <button class="bubble-btn danger" style="padding: 6px 12px; font-size: 0.95rem;" onclick="resetPizzaToppings()">🧹 Clear Pizza</button>
+                </div>
+                
+                <div style="display: flex; gap: 12px; margin-top: 10px;">
+                    <button class="bubble-btn text" style="padding: 8px 16px;" onclick="addSliceToTray()">➕ Place Slice on Plate</button>
+                    <button class="bubble-btn success" style="padding: 10px 24px; font-size: 1.1rem;" onclick="deliverPizza()">🛎️ Serve Customer!</button>
+                </div>
+                <div id="pizza-status" style="font-weight: 700; font-size: 1.1rem; min-height: 25px;"></div>
+            </div>
+        </section>
+
+        <!-- LAB 8: TIME TELLER CLOCK -->
+        <section id="view-lab8" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">⏰ Adventure 8: The Time Clock</h2>
+                <button class="bubble-btn warning" onclick="loadLab8Problem()">🔄 Reset</button>
+                <button class="bubble-btn primary" onclick="switchView('dashboard')">🏠 Home</button>
+            <button class="hint-buy-btn" onclick="buyHint('clock')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Spin the clock hands to match the digital target card and watch the sky change!
+            </p>
+            <div class="lab1-container" style="gap: 15px; position: relative;">
+                <!-- sky backdrop -->
+                <div class="sky-backdrop" id="sky-backdrop" style="position: relative; width: 100%; max-width: 600px; height: 80px; border-radius: 16px; border: 3px solid var(--border-color); background: linear-gradient(to right, #38bdf8, #bae6fd); display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 2.2rem; box-shadow: inset 0 2px 8px rgba(0,0,0,0.1); font-weight:700;">
+                    <span id="sky-body" style="transition: transform 0.8s ease; display:inline-block;">☀️</span>
+                    <span style="font-size: 1rem; color: #0369a1; font-weight: 700; margin-left: 10px;" id="sky-desc">Day Time!</span>
+                </div>
+                
+                <div id="clock-target" style="font-size: 1.5rem; font-weight: 800; background: #fef3c7; color: #b45309; padding: 10px 25px; border-radius: 16px; border: 3px solid #f59e0b; box-shadow: 0 4px 0 #d97706;">
+                    Target: 03:30
+                </div>
+                
+                <div class="clock-face-container" style="position: relative; width: 220px; height: 220px; background: white; border: 6px solid var(--border-color); border-radius: 50%; box-shadow: 0 6px 0 var(--border-color); display: flex; justify-content: center; align-items: center; margin: 10px 0;">
+                    <svg viewBox="0 0 200 200" style="width: 100%; height: 100%;">
+                        <circle cx="100" cy="100" r="94" fill="#fff" />
+                        <circle cx="100" cy="100" r="84" fill="none" stroke="#f1f5f9" stroke-width="4"/>
+                        <!-- Clock Hour indicators -->
+                        <text x="100" y="28" font-family="'Fredoka',sans-serif" font-weight="800" font-size="16" fill="var(--text-color)" text-anchor="middle">12</text>
+                        <text x="138" y="38" font-family="'Fredoka',sans-serif" font-weight="800" font-size="16" fill="var(--text-color)" text-anchor="middle">1</text>
+                        <text x="166" y="66" font-family="'Fredoka',sans-serif" font-weight="800" font-size="16" fill="var(--text-color)" text-anchor="middle">2</text>
+                        <text x="176" y="106" font-family="'Fredoka',sans-serif" font-weight="800" font-size="16" fill="var(--text-color)" text-anchor="middle">3</text>
+                        <text x="166" y="146" font-family="'Fredoka',sans-serif" font-weight="800" font-size="16" fill="var(--text-color)" text-anchor="middle">4</text>
+                        <text x="138" y="174" font-family="'Fredoka',sans-serif" font-weight="800" font-size="16" fill="var(--text-color)" text-anchor="middle">5</text>
+                        <text x="100" y="184" font-family="'Fredoka',sans-serif" font-weight="800" font-size="16" fill="var(--text-color)" text-anchor="middle">6</text>
+                        <text x="62" y="174" font-family="'Fredoka',sans-serif" font-weight="800" font-size="16" fill="var(--text-color)" text-anchor="middle">7</text>
+                        <text x="34" y="146" font-family="'Fredoka',sans-serif" font-weight="800" font-size="16" fill="var(--text-color)" text-anchor="middle">8</text>
+                        <text x="24" y="106" font-family="'Fredoka',sans-serif" font-weight="800" font-size="16" fill="var(--text-color)" text-anchor="middle">9</text>
+                        <text x="34" y="66" font-family="'Fredoka',sans-serif" font-weight="800" font-size="16" fill="var(--text-color)" text-anchor="middle">10</text>
+                        <text x="62" y="38" font-family="'Fredoka',sans-serif" font-weight="800" font-size="16" fill="var(--text-color)" text-anchor="middle">11</text>
+                        
+                        <!-- Hour Hand -->
+                        <line x1="100" y1="100" x2="100" y2="52" id="hour-hand" stroke="#1e293b" stroke-width="7" stroke-linecap="round" style="transform-origin: 100px 100px; transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);"/>
+                        <!-- Minute Hand -->
+                        <line x1="100" y1="100" x2="100" y2="35" id="minute-hand" stroke="#ef4444" stroke-width="4.5" stroke-linecap="round" style="transform-origin: 100px 100px; transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);"/>
+                        <circle cx="100" cy="100" r="7" fill="#1e293b"/>
+                    </svg>
+                </div>
+                
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+                    <button class="bubble-btn text" style="padding: 6px 12px; font-size: 0.95rem;" onclick="adjustClockTime('hour', 1)">🕐 +1 Hour</button>
+                    <button class="bubble-btn text" style="padding: 6px 12px; font-size: 0.95rem;" onclick="adjustClockTime('minute', 5)">🕚 +5 Min</button>
+                    <button class="bubble-btn text" style="padding: 6px 12px; font-size: 0.95rem;" onclick="adjustClockTime('minute', 15)">🕒 +15 Min</button>
+                    <button class="bubble-btn danger" style="padding: 6px 12px; font-size: 0.95rem;" onclick="resetClockToDefault()">🧹 Reset Hands</button>
+                </div>
+                
+                <button class="bubble-btn success" style="padding: 10px 24px; font-size: 1.1rem; margin-top: 10px;" onclick="checkClockTime()">✨ Check My Time</button>
+                <div id="clock-status" style="font-weight: 700; font-size: 1.1rem; min-height: 25px;"></div>
+            </div>
+        </section>
+
+        <!-- LAB 9: TANGRAM SHAPE BUILDER -->
+        <section id="view-lab9" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">📐 Adventure 9: Shape Builder Puzzle</h2>
+                <button class="bubble-btn warning" onclick="loadLab9Problem()">🔄 Reset</button>
+                <button class="bubble-btn primary" onclick="switchView('dashboard')">🏠 Home</button>
+            <button class="hint-buy-btn" onclick="buyHint('tangram')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Tap or drag geometric blocks into the matching silhouette pattern to build the picture!
+            </p>
+            <div class="lab1-container" style="gap: 15px;">
+                <div style="font-size: 1.05rem; font-weight: 700; color: #3b82f6; text-align: center;">
+                    💡 Click on a placed shape inside the grid to rotate it 90 degrees!
+                </div>
+                
+                <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 100%;">
+                    <!-- Shapes Box Drawer -->
+                    <div style="background: #f8fafc; border: 3px solid var(--border-color); border-radius: 20px; padding: 15px; width: 230px; display: flex; flex-direction: column; gap: 10px; align-items: center; box-shadow: 0 4px 0 var(--border-color);">
+                        <h4 style="margin: 0; color: #64748b; font-weight: 700;">Shapes Drawer</h4>
+                        <div id="tangram-drawer" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; align-items: center; min-height: 120px; width: 100%;">
+                            <!-- Shapes generated by JS -->
+                        </div>
+                    </div>
+                    
+                    <!-- Assembly Board -->
+                    <div id="tangram-board" style="position: relative; width: 260px; height: 260px; background: #e2e8f0; border: 4px dashed var(--border-color); border-radius: 24px; overflow: hidden; display: grid; grid-template-rows: repeat(4, 1fr); grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 4px; box-sizing: border-box; box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);">
+                        <!-- Silhouette background tiles, and snapped shapes -->
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button class="bubble-btn text" id="tangram-symmetry-btn" onclick="toggleTangramSymmetry()">🪞 Turn Symmetry Line ON</button>
+                    <button class="bubble-btn success" style="padding: 10px 24px; font-size: 1.1rem;" onclick="checkTangram()">✨ Check Pattern</button>
+                </div>
+                <div id="tangram-status" style="font-weight: 700; font-size: 1.1rem; min-height: 25px;"></div>
+            </div>
+        </section>
+
+        <!-- LAB 10: MONEY TOY MARKET -->
+        <section id="view-lab10" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">🪙 Adventure 10: Money Toy Store</h2>
+                <button class="bubble-btn warning" onclick="loadLab10Problem()">🔄 Reset</button>
+                <button class="bubble-btn primary" onclick="switchView('dashboard')">🏠 Home</button>
+            <button class="hint-buy-btn" onclick="buyHint('market')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Tap coins in the drawer to drop them onto the checkout counter. Pay the exact toy price!
+            </p>
+            <div class="lab1-container" style="gap: 15px;">
+                <div style="display: flex; gap: 25px; justify-content: center; flex-wrap: wrap; width: 100%;">
+                    <!-- Toy Shelf card -->
+                    <div style="background: white; border: 3px solid var(--border-color); border-radius: 20px; padding: 15px; width: 200px; text-align: center; box-shadow: 0 6px 0 var(--border-color); display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <div id="market-toy-emoji" style="font-size: 4.5rem; margin-bottom: 5px;">🧸</div>
+                        <div id="market-toy-name" style="font-weight: 700; font-size: 1.1rem;">Cute Teddy Bear</div>
+                        <div id="market-toy-price" style="font-weight: 800; font-size: 1.5rem; color: #b45309; margin-top: 5px; background: #fef3c7; padding: 4px 15px; border-radius: 12px; border: 2px solid #f59e0b;">35¢</div>
+                    </div>
+                    
+                    <!-- Checkout Counter -->
+                    <div style="background: #f8fafc; border: 4px dashed var(--border-color); border-radius: 24px; padding: 15px; width: 260px; min-height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; box-shadow: inset 0 2px 6px rgba(0,0,0,0.05); box-sizing: border-box;">
+                        <h4 style="margin: 0; color: #64748b; font-weight: 700;">Store Counter:</h4>
+                        <div id="market-counter-area" style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-items: center; width: 100%; min-height: 90px; margin: 10px 0;">
+                            <!-- coins on counter -->
+                        </div>
+                        <div style="font-weight: 800; font-size: 1.25rem; color: #2563eb; background: #dbeafe; padding: 4px 12px; border-radius: 10px; width: 90%; text-align: center;">
+                            Total: <span id="market-paid-total">0</span>¢
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Coin drawer -->
+                <div style="background: #f1f5f9; border: 3px solid var(--border-color); border-radius: 20px; padding: 15px; width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 4px 0 var(--border-color);">
+                    <div style="font-weight: 700; text-align: center; color: #475569; font-size: 0.95rem;">🪙 Tap Coins to Add:</div>
+                    <div style="display: flex; justify-content: space-around; align-items: center; gap: 8px; flex-wrap: wrap;">
+                        <button class="bubble-btn text" style="padding: 8px; min-width: 80px; background:#fff; border-color:#94a3b8;" onclick="addCoinToCounter(25)">🪙 Quarter (25¢)</button>
+                        <button class="bubble-btn text" style="padding: 8px; min-width: 80px; background:#fff; border-color:#94a3b8;" onclick="addCoinToCounter(10)">🪙 Dime (10¢)</button>
+                        <button class="bubble-btn text" style="padding: 8px; min-width: 80px; background:#fff; border-color:#94a3b8;" onclick="addCoinToCounter(5)">🪙 Nickel (5¢)</button>
+                        <button class="bubble-btn text" style="padding: 8px; min-width: 80px; background:#fff; border-color:#94a3b8;" onclick="addCoinToCounter(1)">🪙 Penny (1¢)</button>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 12px;">
+                    <button class="bubble-btn danger" style="padding: 8px 16px;" onclick="clearCoins()">🧹 Sweep Counter</button>
+                    <button class="bubble-btn success" style="padding: 10px 24px; font-size: 1.1rem;" onclick="buyToy()">🛎️ Purchase Toy!</button>
+                </div>
+                <div id="market-status" style="font-weight: 700; font-size: 1.1rem; min-height: 25px;"></div>
+            </div>
+        </section>
+
+        <!-- LAB 11: SHAPE BALANCE RIDDLES -->
+        <section id="view-lab11" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">⚖️ Adventure 11: Shape Balance Riddles</h2>
+                <button class="bubble-btn warning" onclick="loadLab11Problem()">🔄 Reset</button>
+                <button class="bubble-btn primary" onclick="switchView('dashboard')">🏠 Home</button>
+            <button class="hint-buy-btn" onclick="buyHint('algebra')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Determine the secret weight exchange! Fill in the missing count to balance the scales.
+            </p>
+            <div class="lab1-container" style="gap: 15px;">
+                <!-- Riddle rules box -->
+                <div id="riddle-card" style="font-size: 1.25rem; font-weight: 700; color: #3b82f6; text-align: center; background: #eff6ff; border: 3px solid #bfdbfe; border-radius: 20px; padding: 12px 24px; max-width: 600px; width: 100%; box-shadow: 0 4px 0 #bfdbfe; box-sizing: border-box;">
+                    If 1 Star 🌟 = 2 Triangles 🔺
+                </div>
+                
+                <!-- Balance scale simulation -->
+                <div class="scale-area" style="position: relative; width: 340px; height: 160px; margin: 15px 0;">
+                    <!-- scale base -->
+                    <div style="position: absolute; bottom: 0; left: 155px; width: 30px; height: 80px; background: #64748b; border: 3px solid var(--border-color); border-radius: 4px 4px 0 0; z-index: 1;"></div>
+                    <!-- scale beam -->
+                    <div id="riddle-scale-beam" style="position: absolute; top: 75px; left: 30px; width: 280px; height: 10px; background: #475569; border: 3px solid var(--border-color); border-radius: 4px; z-index: 2; transform-origin: 140px 5px; transition: transform 0.5s ease; display: flex; justify-content: space-between;">
+                        <!-- left hanger hanger-pan -->
+                        <div style="position: absolute; left: 10px; top: 5px; display: flex; flex-direction: column; align-items: center; width: 80px; transform-origin: 40px 0;" class="scale-left-hanger">
+                            <div style="width: 4px; height: 40px; background: #94a3b8;"></div>
+                            <div style="width: 80px; height: 25px; border-radius: 0 0 25px 25px; border: 3px solid var(--border-color); border-top: none; background: #cbd5e1; display: flex; gap: 2px; justify-content: center; align-items: center; padding-bottom: 4px; box-sizing: border-box;" id="riddle-left-pan-content"></div>
+                        </div>
+                        <!-- right hanger hanger-pan -->
+                        <div style="position: absolute; right: 10px; top: 5px; display: flex; flex-direction: column; align-items: center; width: 80px; transform-origin: 40px 0;" class="scale-right-hanger">
+                            <div style="width: 4px; height: 40px; background: #94a3b8;"></div>
+                            <div style="width: 80px; height: 25px; border-radius: 0 0 25px 25px; border: 3px solid var(--border-color); border-top: none; background: #cbd5e1; display: flex; gap: 2px; justify-content: center; align-items: center; padding-bottom: 4px; box-sizing: border-box;" id="riddle-right-pan-content"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="riddle-question" style="font-size: 1.2rem; font-weight: 800; text-align: center; color: var(--text-color);">
+                    How many Triangles 🔺 will balance 3 Stars 🌟?
+                </div>
+                
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button class="bubble-btn" style="padding: 2px 10px; height: 36px;" onclick="adjustRiddleInput(-1)">-</button>
+                    <input type="number" id="riddle-answer-input" value="0" min="0" max="25" class="bubble-input" style="width: 60px; height: 36px; text-align: center; font-weight: 700; font-family: 'Fredoka',sans-serif; font-size: 1.1rem; border: 3px solid var(--border-color); border-radius: 12px; box-sizing: border-box;">
+                    <button class="bubble-btn" style="padding: 2px 10px; height: 36px;" onclick="adjustRiddleInput(1)">+</button>
+                </div>
+                
+                <button class="bubble-btn success" style="padding: 10px 24px; font-size: 1.1rem;" onclick="checkRiddle()">✨ Verify Scales</button>
+                <div id="riddle-status" style="font-weight: 700; font-size: 1.1rem; min-height: 25px;"></div>
+            </div>
+        </section>
+
+        <!-- LAB 12: HUNGRY ALLIGATOR INEQUALITIES -->
+        <section id="view-lab12" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">🐊 Adventure 12: Hungry Alligator Comparison</h2>
+                <button class="bubble-btn warning" onclick="loadLab12Problem()">🔄 Reset</button>
+                <button class="bubble-btn primary" onclick="switchView('dashboard')">🏠 Home</button>
+            <button class="hint-buy-btn" onclick="buyHint('alligator')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Point the hungry alligator's open mouth toward the bigger group of fish to feed it!
+            </p>
+            <div class="lab1-container" style="gap: 20px;">
+                <div style="display: flex; justify-content: space-around; align-items: center; width: 100%; max-width: 700px; flex-wrap: wrap; gap: 15px; margin-top: 10px;">
+                    <!-- Left bowl -->
+                    <div style="background: #e0f2fe; border: 3px solid var(--border-color); border-radius: 20px; width: 160px; height: 130px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; box-shadow: 0 4px 0 var(--border-color); box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);">
+                        <div id="gator-left-bowl" style="font-size: 2.2rem; display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; align-items: center; width: 90%;"></div>
+                        <div id="gator-left-count" style="position: absolute; bottom: -12px; background: #0284c7; color: white; padding: 2px 10px; border-radius: 8px; font-weight: 700; border: 2px solid var(--border-color);">5</div>
+                    </div>
+                    
+                    <!-- Gator Selector -->
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                        <div id="gator-visual" style="font-size: 4rem; height: 75px; line-height: 75px; transition: transform 0.3s ease;">🐊</div>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="bubble-btn text active" id="gator-op-gt" style="padding: 5px 10px; font-size: 0.9rem;" onclick="selectGatorOp('>')">🦖 Eats Left (&gt;)</button>
+                            <button class="bubble-btn text" id="gator-op-lt" style="padding: 5px 10px; font-size: 0.9rem;" onclick="selectGatorOp('<')">🦖 Eats Right (&lt;)</button>
+                            <button class="bubble-btn text" id="gator-op-eq" style="padding: 5px 10px; font-size: 0.9rem;" onclick="selectGatorOp('=')">🎀 Equal (=)</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Right bowl -->
+                    <div style="background: #e0f2fe; border: 3px solid var(--border-color); border-radius: 20px; width: 160px; height: 130px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; box-shadow: 0 4px 0 var(--border-color); box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);">
+                        <div id="gator-right-bowl" style="font-size: 2.2rem; display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; align-items: center; width: 90%;"></div>
+                        <div id="gator-right-count" style="position: absolute; bottom: -12px; background: #0284c7; color: white; padding: 2px 10px; border-radius: 8px; font-weight: 700; border: 2px solid var(--border-color);">3</div>
+                    </div>
+                </div>
+                
+                <button class="bubble-btn success" style="padding: 10px 24px; font-size: 1.1rem; margin-top: 10px;" onclick="checkGator()">✨ Feed Gator!</button>
+                <div id="gator-status" style="font-weight: 700; font-size: 1.1rem; min-height: 25px;"></div>
+            </div>
+        </section>
+
+        <!-- LAB 13: BALLOON POP SKIP COUNTING -->
+        <section id="view-lab13" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">🎈 Adventure 13: Skip Count Balloon Pop</h2>
+                <button class="bubble-btn warning" onclick="loadLab13Problem()">🔄 Reset</button>
+                <button class="bubble-btn primary" onclick="switchView('dashboard')">🏠 Home</button>
+            <button class="hint-buy-btn" onclick="buyHint('balloon')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Pop the floating balloon that contains the correct number to finish the skip counting sequence!
+            </p>
+            <div class="lab1-container" style="gap: 15px;">
+                <div id="balloon-sequence" style="font-size: 1.6rem; font-weight: 800; color: #0284c7; background: #e0f2fe; padding: 10px 25px; border-radius: 18px; border: 3px solid #7dd3fc; box-shadow: 0 4px 0 #7dd3fc; width: 100%; max-width: 500px; text-align: center; box-sizing: border-box;">
+                    2 , 4 , 6 , ? , 10
+                </div>
+                
+                <!-- Sky Floating Area -->
+                <div id="balloon-sky" style="position: relative; width: 100%; max-width: 600px; height: 260px; background: linear-gradient(to top, #bae6fd, #e0f2fe); border: 4px solid var(--border-color); border-radius: 24px; overflow: hidden; display: flex; align-items: flex-end; justify-content: space-around; box-shadow: inset 0 2px 8px rgba(0,0,0,0.05); padding-bottom: 20px; box-sizing: border-box;">
+                    <!-- floating balloons generated by JS -->
+                </div>
+                <div id="balloon-status" style="font-weight: 700; font-size: 1.1rem; min-height: 25px;"></div>
+            </div>
+        </section>
+
+        <!-- LAB 14: MEASUREMENT RULER -->
+        <section id="view-lab14" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">📏 Adventure 14: Measurement Ruler</h2>
+                <button class="bubble-btn warning" onclick="loadLab14Problem()">🔄 Reset</button>
+                <button class="bubble-btn primary" onclick="switchView('dashboard')">🏠 Home</button>
+            <button class="hint-buy-btn" onclick="buyHint('measure')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Drag the wooden ruler left/right to measure the length of the bug from head to tail!
+            </p>
+            <div class="lab1-container" style="gap: 15px;">
+                <div id="measure-target-desc" style="font-size: 1.15rem; font-weight: 700; color: var(--text-color); background: #f8fafc; padding: 10px 20px; border-radius: 14px; border: 2px dashed var(--border-color); text-align: center; width: 100%; max-width: 500px; box-sizing: border-box;">
+                    Measure the caterpillar 🐛!
+                </div>
+                
+                <!-- Measuring Table -->
+                <div style="position: relative; width: 100%; max-width: 500px; height: 160px; background: #fef08a; border: 4px solid var(--border-color); border-radius: 24px; overflow: hidden; box-shadow: inset 0 2px 8px rgba(0,0,0,0.1); margin: 5px 0;">
+                    <!-- creature -->
+                    <div id="measure-creature" style="position: absolute; left: 40px; top: 25px; font-size: 3.8rem; height: 60px; line-height: 60px; user-select: none; transition: transform 0.2s ease;">🐛</div>
+                    
+                    <!-- wooden ruler (draggable slider) -->
+                    <div id="measure-ruler" style="position: absolute; left: 10px; top: 100px; width: 440px; height: 42px; background: #d97706; border: 3px solid #78350f; border-radius: 8px; cursor: ew-resize; user-select: none; box-shadow: 0 4px 6px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: flex-end; padding: 0 8px 4px 8px; box-sizing: border-box; color: #fff; font-family: 'Fredoka',sans-serif; font-size: 0.8rem; font-weight: 800;">
+                        <!-- inch marks -->
+                        <span style="display:flex; flex-direction:column; align-items:center;">0<div style="width:2px; height:6px; background:#fff; margin-top:2px;"></div></span>
+                        <span style="display:flex; flex-direction:column; align-items:center;">1<div style="width:2px; height:6px; background:#fff; margin-top:2px;"></div></span>
+                        <span style="display:flex; flex-direction:column; align-items:center;">2<div style="width:2px; height:6px; background:#fff; margin-top:2px;"></div></span>
+                        <span style="display:flex; flex-direction:column; align-items:center;">3<div style="width:2px; height:6px; background:#fff; margin-top:2px;"></div></span>
+                        <span style="display:flex; flex-direction:column; align-items:center;">4<div style="width:2px; height:6px; background:#fff; margin-top:2px;"></div></span>
+                        <span style="display:flex; flex-direction:column; align-items:center;">5<div style="width:2px; height:6px; background:#fff; margin-top:2px;"></div></span>
+                        <span style="display:flex; flex-direction:column; align-items:center;">6<div style="width:2px; height:6px; background:#fff; margin-top:2px;"></div></span>
+                        <span style="display:flex; flex-direction:column; align-items:center;">7<div style="width:2px; height:6px; background:#fff; margin-top:2px;"></div></span>
+                        <span style="display:flex; flex-direction:column; align-items:center;">8<div style="width:2px; height:6px; background:#fff; margin-top:2px;"></div></span>
+                        <span style="display:flex; flex-direction:column; align-items:center;">9<div style="width:2px; height:6px; background:#fff; margin-top:2px;"></div></span>
+                        <span style="display:flex; flex-direction:column; align-items:center;">10<div style="width:2px; height:6px; background:#fff; margin-top:2px;"></div></span>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span style="font-weight:700;">Measured Length:</span>
+                    <button class="bubble-btn" style="padding: 2px 10px; height: 36px;" onclick="adjustMeasureInput(-1)">-</button>
+                    <input type="number" id="measure-answer-input" value="0" min="0" max="10" class="bubble-input" style="width: 60px; height: 36px; text-align: center; font-weight: 700; font-family: 'Fredoka',sans-serif; font-size: 1.1rem; border: 3px solid var(--border-color); border-radius: 12px; box-sizing: border-box;">
+                    <button class="bubble-btn" style="padding: 2px 10px; height: 36px;" onclick="adjustMeasureInput(1)">+</button>
+                </div>
+                
+                <button class="bubble-btn success" style="padding: 10px 24px; font-size: 1.1rem;" onclick="checkMeasurement()">✨ Verify Length</button>
+                <div id="measure-status" style="font-weight: 700; font-size: 1.1rem; min-height: 25px;"></div>
+            </div>
+        </section>
+
+        <!-- LAB 15: CHARACTER EVOLUTION -->
+        <section id="view-lab15" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">🦸‍♂️ Adventure 15: Character Evolution</h2>
+                <button class="bubble-btn" style="background:linear-gradient(135deg,#6366f1,#8b5cf6); color:white; border-color:#a78bfa; font-weight:800;" onclick="launchEvolution3D()">🎮 Play in 3D!</button>
+                <button class="bubble-btn warning" onclick="resetLab15()">🔄 Restart</button>
+                <button class="bubble-btn primary" onclick="switchView('dashboard')">🏠 Home</button>
+            <button class="hint-buy-btn" onclick="buyHint('evolution')">💡 Hint (15 🪙)</button>
+            </div>
+            <p class="lab-description">
+                Solve visual geometry puzzles to help your character evolve! Gain clothes, muscles, and colors as you conquer all 20 stages!
+            </p>
+
+            <div class="lab15-container" style="display:flex; flex-direction:column; gap:20px; align-items:center;">
+                <!-- Stage Header -->
+                <div id="lab15-stage-header" style="font-size:1.5rem; font-weight:800; color:var(--color-primary); background:#e0f2fe; padding:10px 30px; border-radius:16px; border:3px solid var(--color-primary); box-shadow:0 4px 0 var(--color-primary);">
+                    Stage 1: The First Steps
+                </div>
+
+                <!-- Main Game Arena -->
+                <div class="evolution-arena" style="display:flex; flex-wrap:wrap; gap:30px; width:100%; max-width:800px; justify-content:center; align-items:flex-end;">
+                    
+                    <!-- Avatar Area -->
+                    <div class="avatar-area" style="display:flex; flex-direction:column; align-items:center; gap:8px;">
+                        <div id="evolution-avatar" class="avatar-stick" style="width:120px; height:180px; position:relative; background:linear-gradient(180deg,#f8fafc,#f1f5f9); border:3px dashed #cbd5e1; border-radius:16px; display:flex; justify-content:center; align-items:center; box-shadow:0 4px 12px rgba(0,0,0,0.06); transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                            <!-- Character Parts Injected Here -->
+                            <div class="avatar-head"></div>
+                            <div class="avatar-body"></div>
+                            <div class="avatar-arms"></div>
+                            <div class="avatar-legs"></div>
+                        </div>
+                        <div class="hero-name-label" style="font-weight:800; color:#1e293b; font-size:0.95rem;">Stick Figure</div>
+                        <div style="font-size:0.75rem; color:#64748b; font-weight:600;">Level <span id="hero-level-num">0</span>/20</div>
+                    </div>
+
+                    <!-- Puzzle Area -->
+                    <div class="puzzle-area" style="flex:1; min-width:300px; background:linear-gradient(180deg,#ffffff,#f8fafc); border:4px solid var(--border-color); border-radius:24px; padding:24px; box-shadow:inset 0 4px 10px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.08); display:flex; flex-direction:column; align-items:center; gap:15px; position:relative;">
+                        
+                        <div id="puzzle-instruction" style="font-weight:700; font-size:1.1rem; color:#1e293b; text-align:center;">
+                            Loading puzzle...
+                        </div>
+
+                        <!-- Dynamic Puzzle Scene -->
+                        <div id="puzzle-scene" style="width:100%; height:180px; position:relative; display:flex; align-items:flex-end; justify-content:center;">
+                            <!-- Puzzle elements generated here -->
+                        </div>
+
+                        <!-- Puzzle Controls -->
+                        <div id="puzzle-controls" style="display:flex; flex-wrap:wrap; gap:10px; justify-content:center; width:100%;">
+                            <!-- Buttons generated here -->
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="evolution-progress-wrapper" style="width:100%; max-width:600px; display:flex; flex-direction:column; gap:5px; margin-top:10px;">
+                    <div style="display:flex; justify-content:space-between; font-weight:700; color:#64748b; font-size:0.9rem;">
+                        <span>Stage 1</span>
+                        <span>Stage 20</span>
+                    </div>
+                    <div class="progress-bar-container" style="width:100%; height:24px; background:#e2e8f0; border:3px solid var(--border-color); border-radius:12px; overflow:hidden; box-shadow:inset 0 2px 4px rgba(0,0,0,0.1);">
+                        <div id="evolution-progress-bar" class="evolution-bar-fill" style="width:5%; height:100%; background:linear-gradient(90deg,#22c55e,#3b82f6,#a855f7); border-radius:9999px; transition:width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow:0 0 8px rgba(59,130,246,0.5);"></div>
+                    </div>
+                </div>
+
+                <div id="evolution-status" style="font-weight:700; font-size:1.1rem; min-height:25px; margin-top:10px;"></div>
+            </div>
+        </section>
+
+        <!-- PRINTABLE KIT LAB -->
+        <section id="view-print" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">🖨️ Cut-Out Craft Kit</h2>
+            </div>
+            <p class="lab-description">
+                Print physical toys on paper! Click any box to prepare a print sheet. Then use your browser's print option (Ctrl+P) to print, cut them out, and play with your family!
+            </p>
+
+            <div class="print-options-grid">
+                <div class="print-card">
+                    <div class="print-card-icon">🧮</div>
+                    <div class="print-card-title">Magic Trays & Counter Dots</div>
+                    <p style="font-size:0.9rem; color:#475569;">Includes physical 10-frame grids and round dots (counters) to cut out and arrange.</p>
+                    <button class="bubble-btn primary" onclick="generatePrintable('ten-frames')">🖨️ Prepare Print</button>
+                </div>
+
+                <div class="print-card">
+                    <div class="print-card-icon">🏡</div>
+                    <div class="print-card-title">Secret Clubhouses</div>
+                    <p style="font-size:0.9rem; color:#475569;">Printable home templates to write down addition and subtraction relationships.</p>
+                    <button class="bubble-btn success" onclick="generatePrintable('fact-houses')">🖨️ Prepare Print</button>
+                </div>
+
+                <div class="print-card">
+                    <div class="print-card-icon">🎴</div>
+                    <div class="print-card-title">Card Matching Game</div>
+                    <p style="font-size:0.9rem; color:#475569;">A printable memory/matching card game. Match addition to subtraction counterparts!</p>
+                    <button class="bubble-btn warning" onclick="generatePrintable('match-cards')">🖨️ Prepare Print</button>
+                </div>
+
+                <div class="print-card">
+                    <div class="print-card-icon">📏</div>
+                    <div class="print-card-title">Farm Grid Worksheets</div>
+                    <p style="font-size:0.9rem; color:#475569;">Draw-your-own arrays grid paper. Perfect for coloring grids and writing multiplication steps.</p>
+                    <button class="bubble-btn accent" onclick="generatePrintable('array-grids')">🖨️ Prepare Print</button>
+                </div>
+
+                <div class="print-card">
+                    <div class="print-card-icon">🐸</div>
+                    <div class="print-card-title">Lilypad Board Game</div>
+                    <p style="font-size:0.9rem; color:#475569;">A physical pond board game with numbered lilypads (0-20), frog tokens, and movement cards!</p>
+                    <button class="bubble-btn primary" onclick="generatePrintable('lilypad-game')">🖨️ Prepare Print</button>
+                </div>
+
+                <div class="print-card">
+                    <div class="print-card-icon">⏰</div>
+                    <div class="print-card-title">Clock Craft Template</div>
+                    <p style="font-size:0.9rem; color:#475569;">Print a clock dial template with hour and minute hands. Cut out and pin them to tell time!</p>
+                    <button class="bubble-btn success" onclick="generatePrintable('clock-craft')">🖨️ Prepare Print</button>
+                </div>
+
+                <div class="print-card">
+                    <div class="print-card-icon">📐</div>
+                    <div class="print-card-title">Geometric Tangram Blocks</div>
+                    <p style="font-size:0.9rem; color:#475569;">Cut-out sheet of colorful shapes (triangles, squares, hexagons) and outline puzzle sheets.</p>
+                    <button class="bubble-btn warning" onclick="generatePrintable('tangram-blocks')">🖨️ Prepare Print</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROGRESS & STATS VIEW -->
+        <section id="view-parent" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">🏆 Trophy Room & Progress Report</h2>
+                <button class="bubble-btn danger" onclick="resetProgress()">⚠️ Clear Stats</button>
+            </div>
+            <p class="lab-description">
+                Review your child's progress! Track achievements, right and wrong attempts, and diagnostic reviews for each game.
+            </p>
+            
+            <div class="lab1-container" style="gap:20px;">
+                <!-- Stats Overview Card -->
+                <div style="display:flex; justify-content:space-around; align-items:center; width:100%; max-width:700px; background:#f0fdf4; border:4px solid var(--border-color); border-radius:20px; padding:20px; box-shadow:0 6px 0 var(--border-color);">
+                    <div style="text-align:center;">
+                        <div style="font-size:3.5rem;">⭐</div>
+                        <div style="font-size:1.8rem; font-weight:700;" id="parent-stars">0 Stars</div>
+                        <div style="color:#64748b; font-weight:600;">Reward Points</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div style="font-size:3.5rem;">🏅</div>
+                        <div style="font-size:1.8rem; font-weight:700;" id="parent-badges-count">0 Badges</div>
+                        <div style="color:#64748b; font-weight:600;">Unlocked Badges</div>
+                    </div>
+                </div>
+
+                <!-- Badges Shelf -->
+                <div style="width:100%; max-width:700px; background:white; border:3px solid var(--border-color); border-radius:20px; padding:20px; text-align:center;">
+                    <h3 style="margin-bottom:15px; color:#475569;">Badges Shelf</h3>
+                    <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap;" id="badge-shelf-container">
+                        <!-- badges injected here -->
+                    </div>
+                </div>
+
+                <!-- Details Table -->
+                <div style="width:100%; max-width:700px; background:white; border:3px solid var(--border-color); border-radius:20px; padding:20px;">
+                    <h3 style="margin-bottom:15px; text-align:center; color:#475569;">Adventure Attempts History</h3>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:1.05rem;">
+                            <thead>
+                                <tr style="border-bottom:3px solid var(--border-color);">
+                                    <th style="padding:10px; color:#64748b;">Game</th>
+                                    <th style="padding:10px; color:var(--color-success);">Right Answers</th>
+                                    <th style="padding:10px; color:var(--color-danger);">Hints Needed / Errors</th>
+                                    <th style="padding:10px; color:#64748b;">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="parent-stats-table">
+                                <!-- table details injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Parent Configuration Settings -->
+                <div style="width:100%; max-width:700px; background:#eff6ff; border:3px solid var(--border-color); border-radius:20px; padding:20px; box-shadow:0 6px 0 var(--border-color); box-sizing:border-box;">
+                    <h3 style="margin-bottom:10px; color:#1e40af; display:flex; align-items:center; gap:8px;">⚙️ Parent Game Configurator</h3>
+                    <p style="font-size:0.9rem; color:#475569; margin:0 0 15px 0;">Configure math parameters to tailor the learning challenge for your child!</p>
+                    <div style="display:flex; flex-wrap:wrap; gap:20px; align-items:center;">
+                        <div style="display:flex; flex-direction:column; gap:5px;">
+                            <label for="config-max-limit" style="font-weight:700; font-size:0.95rem; color:#1e3a8a;">Max Number Range (e.g. Frog Jumper, Alligator):</label>
+                            <select id="config-max-limit" class="bubble-select" onchange="updateParentConfig()">
+                                <option value="10">0 to 10 (Introductory)</option>
+                                <option value="20" selected>0 to 20 (Grade 1 Standard)</option>
+                                <option value="50">0 to 50 (Grade 2 Standard)</option>
+                                <option value="100">0 to 100 (Advanced Challenge)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Diagnostic Coaching Card -->
+                <div style="width:100%; max-width:700px; background:#fef3c7; border:3px solid var(--border-color); border-radius:20px; padding:20px;">
+                    <h3 style="margin-bottom:10px; color:#78350f;">💡 Parent Diagnostics & Coaching Tips</h3>
+                    <div id="parent-diagnostics-tips" style="line-height:1.6; color:#451a03; font-size:1rem; text-align:left;">
+                        Play games to populate progress statistics and suggestions!
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TOY SHOP VIEW -->
+        <section id="view-shop" class="lab-panel">
+            <div class="lab-header">
+                <h2 class="lab-title">🏪 Penny's Toy Shop</h2>
+                <button class="bubble-btn primary" onclick="switchView('dashboard')">🏠 Home</button>
+            </div>
+            
+            <div class="shop-container" style="display:flex; flex-direction:column; gap:25px; align-items:center; width:100%; max-width:800px; margin:0 auto; padding:10px;">
+                <!-- Penny character widget -->
+                <div class="penny-character-widget" style="display:flex; align-items:center; gap:20px; background:#fff1f2; border:3px solid #fda4af; border-radius:24px; padding:20px; width:100%; box-shadow:0 6px 0 #fda4af; box-sizing:border-box;">
+                    <div style="font-size:4rem; animation: bounce 3s infinite ease-in-out;">🐷</div>
+                    <div style="flex:1; display:flex; flex-direction:column; gap:5px;">
+                        <div style="font-weight:900; color:#e11d48; font-size:1.15rem;">Penny the Piggy Bank</div>
+                        <div id="penny-dialog-text" style="font-weight:700; color:#4c0519; font-size:1.02rem; line-height:1.4;">
+                            Oink! Welcome to my Toy Shop! Solve math puzzles to earn Stars, then spend them here to customize your playground or fill your Sticker Book!
+                        </div>
+                    </div>
+                    <div style="text-align:right; min-width:120px;">
+                        <div style="font-size:0.8rem; font-weight:800; color:#9f1239; text-transform:uppercase; letter-spacing:0.5px;">Your Balance</div>
+                        <div id="shop-coins-display" style="font-size:1.7rem; font-weight:900; color:#be123c;">0 Stars</div>
+                    </div>
+                </div>
+
+                <!-- Main Store Items Grid -->
+                <div style="width:100%;">
+                    <h3 style="font-weight:900; color:#be123c; margin-bottom:12px; border-bottom:3px dashed #fda4af; padding-bottom:5px; font-size:1.3rem;">🛍️ Store Shelves</h3>
+                    <div id="shop-store-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:20px; width:100%;">
+                        <!-- Dynamic Store Cards Generated in JS -->
+                    </div>
+                </div>
+
+                <!-- Sticker Album Grid -->
+                <div style="width:100%; background:#f8fafc; border:4px dashed #cbd5e1; border-radius:24px; padding:20px; box-sizing:border-box;">
+                    <h3 style="font-weight:900; color:#475569; margin-bottom:15px; text-align:center; font-size:1.2rem;">📖 My Sticker Collection Album</h3>
+                    <div id="sticker-book-shelf" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(100px, 1fr)); gap:15px; justify-items:center; width:100%;">
+                        <!-- Dynamic Unlocked Stickers Generated in JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- SUCCESS POPUP OVERLAY -->
+    <div class="overlay" id="success-overlay">
+        <div class="popup">
+            <div class="popup-emoji">🎉</div>
+            <div class="popup-title">Awesome!</div>
+            <div class="popup-message" id="success-message">You found the answer!</div>
+            <button class="bubble-btn success" onclick="closeSuccessPopup()">Play Again! 🌟</button>
+        </div>
+    </div>
+
+    <!-- HINT BUBBLE CONTAINER -->
+    <div id="lab-hint-bubble" style="display:none; position:fixed; bottom:30px; right:30px; z-index:1000; max-width:320px; transition: transform 0.2s ease;"></div>
+
+    <!-- PRINT VIEW AREA (Only visible during window.print()) -->
+    <div id="printable-area"></div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Script Loads -->
+    <script src="sound.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

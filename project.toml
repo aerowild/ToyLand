@@ -1,0 +1,24 @@
+# project.toml — Toy Land Play Lab project metadata
+
+[project]
+name = "toyland"
+title = "Toy Land Play Lab — Math Quest"
+description = "A 3D math learning game for Grade 1 & 2 (ages 6-7): 24 math stages, an endless Teleporter Run, an evolving robot hero, and 14 practice mini-games."
+version = "0.1.0"
+license = "UNLICENSED"
+authors = ["Aerowild"]
+repository = "git@github.com:aerowild/ToyLand.git"
+keywords = ["education", "math", "kids", "game", "react", "three.js"]
+
+[tooling]
+runtime = "node"
+framework = "react + vite"
+renderer = "three.js (@react-three/fiber, @react-three/drei)"
+animation = "gsap"
+package_manager = "npm"
+
+[scripts]
+dev = "npm run dev      # http://localhost:8888"
+build = "npm run build"
+preview = "npm run preview"
+lint = "npm run lint"
