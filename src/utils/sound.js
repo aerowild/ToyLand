@@ -488,3 +488,32 @@ export function startBackgroundMusic() {
 export function stopBackgroundMusic() {
     if (musicTimer) { clearInterval(musicTimer); musicTimer = null; }
 }
+
+
+// --- Soft, calm looping music for the math stages (gentle pentatonic pad) ---
+let calmTimer = null;
+let calmStep = 0;
+const CALM_MELODY = [523.25, 0, 659.25, 0, 587.33, 0, 783.99, 0, 659.25, 0, 587.33, 0, 440.0, 0, 0, 0];
+const CALM_BASS = [130.81, 0, 0, 0, 174.61, 0, 0, 0, 196.0, 0, 0, 0, 146.83, 0, 0, 0];
+export function startCalmMusic() {
+    if (!soundEnabled || calmTimer) return;
+    try {
+        getAudioContext();
+        calmStep = 0;
+        const stepDur = 0.5; // slow + soothing
+        const playStep = () => {
+            if (!soundEnabled) return;
+            const ctx = getAudioContext(); const now = ctx.currentTime + 0.01;
+            const m = CALM_MELODY[calmStep % CALM_MELODY.length];
+            const b = CALM_BASS[calmStep % CALM_BASS.length];
+            if (m) blip(ctx, now, m, 'sine', stepDur * 1.6, 0.025);   // soft bell
+            if (b) blip(ctx, now, b, 'sine', stepDur * 3.2, 0.022);   // gentle pad
+            calmStep++;
+        };
+        playStep();
+        calmTimer = setInterval(playStep, stepDur * 1000);
+    } catch (e) { /* ignore */ }
+}
+export function stopCalmMusic() {
+    if (calmTimer) { clearInterval(calmTimer); calmTimer = null; }
+}

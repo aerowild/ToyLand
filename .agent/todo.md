@@ -10,8 +10,13 @@
 - [x] Sub_bridge: left-anchored log spans gap exactly (no air-walking).
 - [x] Stage-appropriate win/lose animations + crocodile chomp; fix 5→6 transition.
 - [x] AGENT.md + CLAUDE.md; vite port 8888.
+- [x] Endless runner (Teleporter Run): lanes, jump/duck, coins, varied moving obstacles, power-ups, teleporter quizzes, checkpoints (cross the 8 levels) + countdown + respawn twist.
+- [x] Runner perf fix (memoized StaticWorld) + ErrorBoundary + WebGL context guards.
+- [x] Audio upgrade: run/calm music, coin pitch, cause crashes, power-up SFX, urgency ticks, spoken pedestrians.
+- [x] Git init + .gitignore + project.toml + remote origin.
 
 ## Backlog / Watch
 - [ ] Hill: cap step spacing so many tiny blocks stay in a tidy zone.
 - [ ] Consider hiding the running total for pure mental-math mode.
-- [ ] Playtest all 24 stages end-to-end (win + lose) for edge cases.
+- [ ] Playtest all 24 stages + a full run (win + lose) for edge cases.
+- [ ] Code-split the 1.3MB bundle (dynamic import three/drei) if load time matters.

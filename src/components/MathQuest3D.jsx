@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import Hero3D from './Hero3D';
 import { getStageParams, COLORS, FEATURE_NAMES, getRandomPraise, getHint, calculateStars } from '../utils/mathQuestState';
-import { playSound, playStreakComboSound } from '../utils/sound';
+import { playSound, playStreakComboSound, startCalmMusic, stopCalmMusic } from '../utils/sound';
 
 export function formatTime(val) {
     const hours = Math.floor(val);
@@ -2269,6 +2269,14 @@ export default function MathQuest3D({
             }
         };
     }, []);
+
+    // Soft, calm background music while playing a math stage (the runner manages its own
+    // music, so skip it in checkpoint mode to avoid overlap).
+    useEffect(() => {
+        if (!checkpointMode && soundEnabled) startCalmMusic();
+        else stopCalmMusic();
+        return () => stopCalmMusic();
+    }, [soundEnabled, checkpointMode]);
 
     // Reset when level changes
     useEffect(() => {

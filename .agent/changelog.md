@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-06-19 (audio upgrade + git)
+- Fixed runner crash: `FlameEffect` (a Hero3D-only component) was used in RunnerGame's jetpack power-up icon and undefined there → replaced with inline flame meshes.
+- Upgraded sound (all original synth): looping upbeat music in the run + soft calm music in math stages; rising-pitch coin collection; cause-specific crash sounds (car/bike/bicycle/animal/pedestrian/barrier); distinct per power-up sounds; urgency ticks in timed puzzles; kid-friendly spoken pedestrian reactions via browser speech (no profanity).
+- Initialized git (`main`), adjusted `.gitignore` (env/BU/scratch/*.bak), added `project.toml`, connected remote `origin` → git@github.com:aerowild/ToyLand.git.
+- Kept README/AGENT.md/.agent docs current.
+
 ## 2026-06-18 (crash safety + checkpoint celebration)
 - Added an ErrorBoundary around the runner (and a WebGL `webglcontextlost` guard on both game Canvases) so a 3D/context error no longer white-screens the whole app — it shows a friendly "Try Again / Home" card and recovers. Stars/gear are preserved.
 - Added a checkpoint celebration: after crossing a checkpoint level, a "🎉 Checkpoint Saved!" overlay shows with a 5→4→3→2→1 countdown before returning to the run.
