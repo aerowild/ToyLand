@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-20 (interactive math tutor)
+- Added `MathTutor` — short, animated, voiced mini-lessons that TEACH a missed add/subtract problem using proven 2nd-grade strategies, picked per-problem: count-on (number line), make-a-ten (ten-frames), count-up / "think addition" (chunked number-line jumps), and place-value partial sums. Each ends with a one-line trick.
+- Wired into the runner quiz: timed puzzles auto-launch the tutor on a wrong/timeout (with ⏭️ Skip); non-timed puzzles get a "🤔 Show me how" button.
+
 ## 2026-06-19 (adaptive learning + profiles)
 - Added kid **profiles** (cached in localStorage): create/switch/delete from a header chip; auto-creates "Player 1".
 - Added an **adaptive arithmetic engine** (`src/utils/profileStore.js`): per-skill mastery (8 add/sub skills, easiest→hardest), spaced repetition (failing skills repeat on a short interval; mastered skills relax and phase out), and slow introduction of the next harder skill once current ones are mastered. Runner math puzzles draw from it and record results.

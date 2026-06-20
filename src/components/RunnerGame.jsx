@@ -5,6 +5,7 @@ import { RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
 import Hero3D from './Hero3D';
 import MathQuest3D from './MathQuest3D';
+import MathTutor from './MathTutor';
 import { FEATURE_NAMES, getRandomPraise } from '../utils/mathQuestState';
 import { playSound, playCrash, playPowerup, playCoinPitch, playTick, speakPedestrian, speakEquation, speak, startBackgroundMusic, stopBackgroundMusic } from '../utils/sound';
 import { getAdaptiveProblem, recordPuzzleResult } from '../utils/profileStore';
@@ -35,6 +36,7 @@ function QuizModal({ title, subtitle, level, onSolved, onFailed, accent = '#a855
   const [picked, setPicked] = useState(null);
   const [result, setResult] = useState(null); // 'right' | 'wrong'
   const [timeLeft, setTimeLeft] = useState(timeLimit);
+  const [tutor, setTutor] = useState(null); // null | 'fail' | 'manual'
   const doneRef = useRef(false);
   const startRef = useRef(Date.now());
 
@@ -47,10 +49,9 @@ function QuizModal({ title, subtitle, level, onSolved, onFailed, accent = '#a855
       speak(['Great job!', 'You got it!', 'Awesome!', 'Well done!', 'Super!'][Math.floor(Math.random() * 5)], { clear: true, minGap: 0, pitch: 1.1 + Math.random() * 0.3 });
       setTimeout(() => onSolved(), 1000);
     } else {
-      // Teach: highlight + say the full equation, then continue
+      // Teach it: launch the animated tutor, then continue
       setResult('wrong'); playSound('buzz');
-      speakEquation(problem.a, problem.op, problem.b, problem.answer);
-      setTimeout(() => { if (onFailed) onFailed(); }, 3600);
+      setTutor('fail');
     }
   };
 
@@ -123,10 +124,22 @@ function QuizModal({ title, subtitle, level, onSolved, onFailed, accent = '#a855
                 );
               })}
             </div>
+            {result === null && !timeLimit && (
+              <button onClick={() => { playSound('click'); setTutor('manual'); }}
+                style={{ marginTop: 14, fontFamily: 'inherit', fontWeight: 800, fontSize: '0.95rem', padding: '10px 18px', borderRadius: 14, border: '3px solid #0ea5e9', background: '#e0f2fe', color: '#075985', cursor: 'pointer' }}>
+                🤔 Show me how
+              </button>
+            )}
             {result === 'right' && <p style={{ color: '#16a34a', fontWeight: 800, marginTop: '14px' }}>{getRandomPraise()}</p>}
           </>
         )}
       </div>
+      {tutor && (
+        <MathTutor
+          a={problem.a} op={problem.op} b={problem.b} answer={problem.answer}
+          onDone={() => { if (tutor === 'fail') { if (onFailed) onFailed(); } else { setTutor(null); } }}
+        />
+      )}
     </div>
   );
 }
