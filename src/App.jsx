@@ -871,6 +871,41 @@ export default function App() {
               </div>
             </div>
 
+            {/* Learning Report card */}
+            {(() => {
+              const st = getStats();
+              return (
+                <div style={{ background: '#eff6ff', border: '4px solid #0ea5e9', borderRadius: '24px', padding: '20px', marginBottom: '30px', boxShadow: '0 8px 20px rgba(14,165,233,0.15)', fontFamily: "'Fredoka', sans-serif" }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', borderBottom: '3px dashed #bae6fd', paddingBottom: '10px', marginBottom: '14px' }}>
+                    <h3 style={{ margin: 0, color: '#0369a1', fontSize: '1.4rem' }}>📊 {st ? `${st.avatar} ${st.name}'s` : ''} Learning Report</h3>
+                    <button className="bubble-btn primary" onClick={() => { playSound('click'); setProfileUI((s) => ({ ...s, report: true })); }} style={{ ...btnStyle, fontSize: '0.95rem', padding: '8px 16px' }}>See Full Report →</button>
+                  </div>
+                  {st && st.totalPuzzles > 0 ? (
+                    <div>
+                      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                        <span style={{ background: '#e0f2fe', border: '2px solid #38bdf8', borderRadius: '99px', padding: '6px 14px', fontWeight: '800', color: '#075985' }}>🧩 {st.totalPuzzles} puzzles</span>
+                        <span style={{ background: '#dcfce7', border: '2px solid #4ade80', borderRadius: '99px', padding: '6px 14px', fontWeight: '800', color: '#166534' }}>✅ {Math.round(st.accuracy * 100)}% correct</span>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+                        <div style={{ background: 'white', border: '2px solid #bbf7d0', borderRadius: '14px', padding: '10px 14px' }}>
+                          <div style={{ fontWeight: '800', color: '#166534', fontSize: '0.9rem', marginBottom: '4px' }}>😌 Easy (relaxing)</div>
+                          <div style={{ color: '#475569', fontWeight: '700', fontSize: '0.85rem' }}>{st.easiest.length ? st.easiest.join(', ') : 'Keep playing to master skills!'}</div>
+                        </div>
+                        <div style={{ background: 'white', border: '2px solid #fecaca', borderRadius: '14px', padding: '10px 14px' }}>
+                          <div style={{ fontWeight: '800', color: '#991b1b', fontSize: '0.9rem', marginBottom: '4px' }}>🔁 Repeating to teach</div>
+                          <div style={{ color: '#475569', fontWeight: '700', fontSize: '0.85rem' }}>{st.hardest.length ? st.hardest.join(', ') : 'Nothing tricky right now 🎉'}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <p style={{ color: '#64748b', fontWeight: '700', margin: 0 }}>
+                      No puzzles solved yet! Play the <b>🏃 Run Game</b> and grab a power-up to start a timed math puzzle — your progress shows up here.
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
+
             {/* Trophy Shelf */}
             <div className="trophy-shelf-container">
               <h3 className="trophy-shelf-title">🏆 My Trophies 🏆</h3>
