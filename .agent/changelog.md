@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-06-19 (adaptive learning + profiles)
+- Added kid **profiles** (cached in localStorage): create/switch/delete from a header chip; auto-creates "Player 1".
+- Added an **adaptive arithmetic engine** (`src/utils/profileStore.js`): per-skill mastery (8 add/sub skills, easiest→hardest), spaced repetition (failing skills repeat on a short interval; mastered skills relax and phase out), and slow introduction of the next harder skill once current ones are mastered. Runner math puzzles draw from it and record results.
+- Added a **parent Learning Report** (per-skill mastery bars, accuracy, what's easy vs. needs practice).
+- Power-ups now trigger **timed** math puzzles (no separate teleporter); on timeout/wrong the answer is taught — the full equation is highlighted token-by-token and spoken ("twelve minus ten equals two").
+- Voices are no longer monotone/robotic: randomized pitch/rate + rotating system voices for variety; a clear teaching voice for the equation reveal.
+
 ## 2026-06-19 (audio upgrade + git)
 - Fixed runner crash: `FlameEffect` (a Hero3D-only component) was used in RunnerGame's jetpack power-up icon and undefined there → replaced with inline flame meshes.
 - Upgraded sound (all original synth): looping upbeat music in the run + soft calm music in math stages; rising-pitch coin collection; cause-specific crash sounds (car/bike/bicycle/animal/pedestrian/barrier); distinct per power-up sounds; urgency ticks in timed puzzles; kid-friendly spoken pedestrian reactions via browser speech (no profanity).

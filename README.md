@@ -24,6 +24,7 @@ npm run preview
 - **Teleporter Run** — an endless runner woven between stages: dodge cars/bikes/pedestrians/animals, collect coins, grab timed power-ups (🧲 magnet, 🚀 jetpack, ⚡ boost, ✨ 2× coins, 🛡️ shield), jump and slide. Teleporters trigger quick (sometimes timed) puzzles; **checkpoints** make you cross one of the 8 math levels and save a respawn point.
 - **Evolving robot hero** — a cute mascot that unlocks 24 gear pieces (animated fire/ice/lightning effects, capes, wings, boots, etc.).
 - **14 practice mini-games** (2D), a hero shop, daily quests, and a printable diploma.
+- **Kid profiles + adaptive learning** — per-profile mastery of 8 add/subtract skills; failing skills repeat on a spaced interval to re-teach, mastered skills relax and phase out, and harder skills are introduced slowly. A parent **Learning Report** shows what's easy vs. needs practice. Power-up puzzles are timed and, on a miss, the answer is highlighted and spoken.
 - **Audio** — soft calm music in math mode, upbeat music in the run, cause-specific crash sounds, distinct power-up sounds, rising coin pitch, timed-puzzle urgency ticks, and kid-friendly spoken pedestrian reactions.
 
 ## Admin Mode

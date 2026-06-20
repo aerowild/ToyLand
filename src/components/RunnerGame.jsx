@@ -7,6 +7,7 @@ import Hero3D from './Hero3D';
 import MathQuest3D from './MathQuest3D';
 import { FEATURE_NAMES, getRandomPraise } from '../utils/mathQuestState';
 import { playSound, playCrash, playPowerup, playCoinPitch, playTick, speakPedestrian, speakEquation, speak, startBackgroundMusic, stopBackgroundMusic } from '../utils/sound';
+import { getAdaptiveProblem, recordPuzzleResult } from '../utils/profileStore';
 
 const LANES = [-1.8, 0, 1.8];
 const RUN_Z = 0;            // character z
@@ -30,15 +31,17 @@ function makeProblem(level = 1) {
 }
 
 function QuizModal({ title, subtitle, level, onSolved, onFailed, accent = '#a855f7', timeLimit = 0 }) {
-  const [problem] = useState(() => makeProblem(level));
+  const [problem] = useState(() => getAdaptiveProblem(level));
   const [picked, setPicked] = useState(null);
   const [result, setResult] = useState(null); // 'right' | 'wrong'
   const [timeLeft, setTimeLeft] = useState(timeLimit);
   const doneRef = useRef(false);
+  const startRef = useRef(Date.now());
 
   const finish = (ok) => {
     if (doneRef.current) return;
     doneRef.current = true;
+    recordPuzzleResult(problem.skillId, ok, Date.now() - startRef.current);
     if (ok) {
       setResult('right'); playSound('chime');
       speak(['Great job!', 'You got it!', 'Awesome!', 'Well done!', 'Super!'][Math.floor(Math.random() * 5)], { clear: true, minGap: 0, pitch: 1.1 + Math.random() * 0.3 });

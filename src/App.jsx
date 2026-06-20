@@ -1,5 +1,5 @@
 // src/App.jsx - Main Dashboard and State Manager
-import React, { useEffect, useRef, useReducer } from 'react';
+import React, { useEffect, useRef, useReducer, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import MathQuest3D from './components/MathQuest3D';
 import Hero3D from './components/Hero3D';
@@ -7,6 +7,7 @@ import RunnerGame from './components/RunnerGame';
 import { CookieMonsterGame, SeeSawGame, AlligatorGame } from './components/MiniGames';
 import { STAGE_NAMES, FEATURE_NAMES, EVOLUTION_TITLES, getStageParams } from './utils/mathQuestState';
 import { playSound, setSoundEnabled, isSoundEnabled } from './utils/sound';
+import { ensureProfile, listProfiles, getActiveProfile, createProfile, setActiveProfile, deleteProfile, getStats } from './utils/profileStore';
 import './App.css';
 
 // --- Error boundary: prevents a 3D/runtime error from white-screening the whole app ---
@@ -194,6 +195,12 @@ export default function App() {
 
   const isMountedRef = useRef(false);
   const set = (payload) => dispatch({ type: 'SET', payload });
+
+  // --- Kid profiles + adaptive learning (cached in localStorage) ---
+  const [profileUI, setProfileUI] = useState({ modal: false, report: false, ver: 0 });
+  const refreshProfiles = () => setProfileUI((s) => ({ ...s, ver: s.ver + 1 }));
+  useEffect(() => { ensureProfile(); refreshProfiles(); }, []);
+  const activeProfile = getActiveProfile();
 
   // --- Save profile helper ---
   const saveProfile = (newStars, newStage, newFeatures) => {
@@ -705,6 +712,11 @@ export default function App() {
           <h1>Toy Land Play Lab</h1>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <button onClick={() => { playSound('click'); setProfileUI((s) => ({ ...s, modal: true })); }}
+            style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#ede9fe', border: '3px solid #8b5cf6', padding: '6px 14px', borderRadius: '9999px', fontWeight: '800', color: '#6b21a8', fontSize: '1.05rem', boxShadow: '0 3px 0 #8b5cf6', cursor: 'pointer', fontFamily: 'inherit' }}>
+            <span style={{ fontSize: '1.2rem' }}>{activeProfile ? activeProfile.avatar : '🦸'}</span>
+            <span>{activeProfile ? activeProfile.name : 'Player'}</span>
+          </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: '#e0f2fe', border: '3px solid #0284c7', padding: '8px 16px', borderRadius: '9999px', fontWeight: '800', color: '#0369a1', fontSize: '1.05rem', boxShadow: '0 3px 0 #0284c7' }}>
             🎖️ <span>Lvl {heroLevel}</span>
           </div>
@@ -1496,6 +1508,102 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* ===== PROFILE MANAGER ===== */}
+      {profileUI.modal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.75)', backdropFilter: 'blur(6px)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'white', border: '5px solid #8b5cf6', borderRadius: '28px', padding: '26px', width: '90%', maxWidth: '520px', fontFamily: "'Fredoka', sans-serif", maxHeight: '90vh', overflowY: 'auto' }}>
+            <h2 style={{ margin: '0 0 14px 0', color: '#6b21a8', fontWeight: 900, textAlign: 'center' }}>👤 Player Profiles</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+              {listProfiles().map((p) => {
+                const isActive = activeProfile && p.id === activeProfile.id;
+                return (
+                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <button onClick={() => { playSound('click'); setActiveProfile(p.id); refreshProfiles(); }}
+                      style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 14, border: `3px solid ${isActive ? '#8b5cf6' : '#e2e8f0'}`, background: isActive ? '#f3e8ff' : 'white', color: '#1e293b', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minHeight: 48 }}>
+                      <span style={{ fontSize: '1.6rem' }}>{p.avatar}</span>
+                      <span style={{ flex: 1, textAlign: 'left' }}>{p.name}</span>
+                      {isActive && <span style={{ color: '#16a34a', fontWeight: 900 }}>✓ Playing</span>}
+                    </button>
+                    {listProfiles().length > 1 && (
+                      <button onClick={() => { if (window.confirm(`Delete ${p.name}'s profile?`)) { deleteProfile(p.id); refreshProfiles(); } }}
+                        style={{ width: 44, height: 44, borderRadius: 12, border: '2px solid #fecaca', background: '#fee2e2', cursor: 'pointer', fontSize: '1.1rem' }}>🗑️</button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            {/* create new */}
+            <div style={{ borderTop: '2px dashed #e9d5ff', paddingTop: 14 }}>
+              <div style={{ fontWeight: 800, color: '#6b21a8', marginBottom: 8 }}>➕ New Player</div>
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 10 }}>
+                {['🦸', '🦊', '🐼', '🐯', '🤖', '🦄', '🐸', '🐲'].map((av) => (
+                  <button key={av} onClick={() => setProfileUI((s) => ({ ...s, newAvatar: av }))}
+                    style={{ fontSize: '1.5rem', width: 44, height: 44, borderRadius: 12, cursor: 'pointer', border: `3px solid ${profileUI.newAvatar === av ? '#8b5cf6' : '#e2e8f0'}`, background: profileUI.newAvatar === av ? '#f3e8ff' : 'white' }}>{av}</button>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input value={profileUI.newName || ''} maxLength={16} placeholder="Type a name…"
+                  onChange={(e) => setProfileUI((s) => ({ ...s, newName: e.target.value }))}
+                  style={{ flex: 1, padding: '10px 14px', borderRadius: 12, border: '2px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', minHeight: 48 }} />
+                <button onClick={() => { playSound('chime'); createProfile(profileUI.newName, profileUI.newAvatar || '🦸'); setProfileUI((s) => ({ ...s, newName: '', ver: s.ver + 1 })); }}
+                  className="bubble-btn success" style={{ ...btnStyle, padding: '10px 18px' }}>Add</button>
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 18 }}>
+              <button onClick={() => { playSound('click'); setProfileUI((s) => ({ ...s, report: true })); }}
+                className="bubble-btn primary" style={{ ...btnStyle, flex: 1, justifyContent: 'center' }}>📊 Learning Report</button>
+              <button onClick={() => setProfileUI((s) => ({ ...s, modal: false }))}
+                className="bubble-btn" style={{ ...btnStyle, flex: 1, justifyContent: 'center' }}>Done</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== LEARNING REPORT (parent view) ===== */}
+      {profileUI.report && (() => {
+        const st = getStats();
+        const statusColor = { locked: '#94a3b8', new: '#64748b', learning: '#3b82f6', 'needs-help': '#ef4444', mastered: '#22c55e' };
+        const statusLabel = { locked: 'Locked', new: 'New', learning: 'Learning', 'needs-help': 'Needs practice', mastered: 'Mastered ⭐' };
+        return (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.78)', backdropFilter: 'blur(6px)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ background: 'white', border: '5px solid #0ea5e9', borderRadius: '28px', padding: '26px', width: '92%', maxWidth: '560px', fontFamily: "'Fredoka', sans-serif", maxHeight: '92vh', overflowY: 'auto' }}>
+              <h2 style={{ margin: '0 0 6px 0', color: '#0369a1', fontWeight: 900, textAlign: 'center' }}>📊 Learning Report</h2>
+              {st ? (
+                <>
+                  <div style={{ textAlign: 'center', fontWeight: 800, color: '#1e293b', marginBottom: 12 }}>{st.avatar} {st.name}</div>
+                  <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
+                    <span style={{ background: '#e0f2fe', border: '2px solid #38bdf8', borderRadius: 99, padding: '6px 14px', fontWeight: 800, color: '#075985' }}>🧩 {st.totalPuzzles} puzzles</span>
+                    <span style={{ background: '#dcfce7', border: '2px solid #4ade80', borderRadius: 99, padding: '6px 14px', fontWeight: 800, color: '#166534' }}>✅ {Math.round(st.accuracy * 100)}% correct</span>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {st.skills.map((sk) => (
+                      <div key={sk.id} style={{ opacity: sk.status === 'locked' ? 0.5 : 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 3 }}>
+                          <span style={{ fontWeight: 800, color: '#334155', fontSize: '0.95rem' }}>{sk.label}</span>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'white', background: statusColor[sk.status], padding: '2px 8px', borderRadius: 99 }}>{statusLabel[sk.status]}</span>
+                        </div>
+                        <div style={{ height: 10, background: '#e2e8f0', borderRadius: 99, overflow: 'hidden' }}>
+                          <div style={{ width: `${Math.round(sk.mastery * 100)}%`, height: '100%', background: statusColor[sk.status] }} />
+                        </div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 700, marginTop: 2 }}>
+                          {sk.attempts ? `${sk.correct}/${sk.attempts} correct (${Math.round(sk.accuracy * 100)}%)` : 'Not tried yet'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ marginTop: 14, fontSize: '0.9rem', color: '#475569', fontWeight: 700 }}>
+                    <p style={{ margin: '4px 0' }}>😌 Easy / used to relax: {st.easiest.length ? st.easiest.join(', ') : '—'}</p>
+                    <p style={{ margin: '4px 0' }}>🔁 Repeating to teach: {st.hardest.length ? st.hardest.join(', ') : '—'}</p>
+                  </div>
+                </>
+              ) : <p style={{ textAlign: 'center', color: '#64748b' }}>No data yet — play the Run game's puzzles!</p>}
+              <button onClick={() => setProfileUI((s) => ({ ...s, report: false }))}
+                className="bubble-btn" style={{ ...btnStyle, width: '100%', justifyContent: 'center', marginTop: 18 }}>Close</button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
