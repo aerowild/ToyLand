@@ -42,6 +42,7 @@ export function getStore() {
 
 export function listProfiles() { return Object.values(getStore().profiles); }
 export function getActiveProfile() { const d = getStore(); return d.activeId && d.profiles[d.activeId] ? d.profiles[d.activeId] : null; }
+export function getActiveProfileId() { const d = getStore(); return d.activeId && d.profiles[d.activeId] ? d.activeId : null; }
 
 export function ensureProfile() {
   // Make sure there's always an active profile so adaptivity works out of the box.

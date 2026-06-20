@@ -7,7 +7,7 @@ import RunnerGame from './components/RunnerGame';
 import { CookieMonsterGame, SeeSawGame, AlligatorGame } from './components/MiniGames';
 import { STAGE_NAMES, FEATURE_NAMES, EVOLUTION_TITLES, getStageParams } from './utils/mathQuestState';
 import { playSound, setSoundEnabled, isSoundEnabled } from './utils/sound';
-import { ensureProfile, listProfiles, getActiveProfile, createProfile, setActiveProfile, deleteProfile, getStats } from './utils/profileStore';
+import { ensureProfile, listProfiles, getActiveProfile, getActiveProfileId, createProfile, setActiveProfile, deleteProfile, getStats } from './utils/profileStore';
 import './App.css';
 
 // --- Error boundary: prevents a 3D/runtime error from white-screening the whole app ---
@@ -37,35 +37,54 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// --- localStorage helpers ---
-const STORAGE_PREFIX = 'toy_land_';
+// --- localStorage helpers (game state is namespaced PER PROFILE) ---
+// Each profile gets its own stars/level/stage/gear/etc. under `toy_land_<profileId>_<key>`.
+const LEGACY_PREFIX = 'toy_land_';
+const nsPrefix = () => `toy_land_${getActiveProfileId() || 'default'}_`;
+// Keys that should be isolated per profile + migrated from the old flat layout once.
+const GAME_KEYS = ['stars', 'stage', 'current_stage', 'features', 'equipped_features', 'achievements', 'purchased_items', 'hero_level', 'hero_exp', 'login_streak', 'reward_claimed_today', 'daily_quests', 'pet_love', 'pet_bond_level', 'pet_color', 'pet_accessory', 'last_login_date', 'profile'];
+
 const storage = {
   get(key, fallback = null) {
     try {
-      const val = localStorage.getItem(STORAGE_PREFIX + key);
+      const val = localStorage.getItem(nsPrefix() + key);
       if (val === null) return fallback;
       return val;
     } catch { return fallback; }
   },
   getInt(key, fallback = 0) {
-    const val = localStorage.getItem(STORAGE_PREFIX + key);
+    const val = localStorage.getItem(nsPrefix() + key);
     return val ? parseInt(val, 10) : fallback;
   },
   getJSON(key, fallback = null) {
     try {
-      const val = localStorage.getItem(STORAGE_PREFIX + key);
+      const val = localStorage.getItem(nsPrefix() + key);
       return val ? JSON.parse(val) : fallback;
     } catch { return fallback; }
   },
   set(key, value) {
-    if (typeof value === 'object') {
-      localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
-    } else {
-      localStorage.setItem(STORAGE_PREFIX + key, String(value));
-    }
+    const k = nsPrefix() + key;
+    if (typeof value === 'object') localStorage.setItem(k, JSON.stringify(value));
+    else localStorage.setItem(k, String(value));
   },
-  remove(key) { localStorage.removeItem(STORAGE_PREFIX + key); }
+  remove(key) { localStorage.removeItem(nsPrefix() + key); },
 };
+
+// One-time: copy the old flat `toy_land_*` game data into the first profile's namespace.
+function migrateLegacyGameData() {
+  try {
+    const flag = `${nsPrefix()}_migrated`;
+    if (localStorage.getItem(flag)) return;
+    GAME_KEYS.forEach((key) => {
+      const legacy = localStorage.getItem(LEGACY_PREFIX + key);
+      const target = nsPrefix() + key;
+      if (legacy !== null && localStorage.getItem(target) === null) {
+        localStorage.setItem(target, legacy);
+      }
+    });
+    localStorage.setItem(flag, '1');
+  } catch (e) { /* ignore */ }
+}
 
 // --- Constants ---
 const classicGamesList = [
@@ -134,6 +153,8 @@ const BACKUP_KEYS = [
 ];
 
 function initState() {
+  ensureProfile();            // make sure there's an active profile (namespace target)
+  migrateLegacyGameData();    // once: carry old flat progress into the first profile
   const isAdmin = storage.get('admin_active') === 'true';
   const savedStage = storage.getInt('stage', 1);
   const savedCurrent = storage.getInt('current_stage', savedStage);
