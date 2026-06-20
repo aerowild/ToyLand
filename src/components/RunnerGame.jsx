@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import Hero3D from './Hero3D';
 import MathQuest3D from './MathQuest3D';
 import { FEATURE_NAMES, getRandomPraise } from '../utils/mathQuestState';
-import { playSound, playCrash, playPowerup, playCoinPitch, playTick, speakPedestrian, startBackgroundMusic, stopBackgroundMusic } from '../utils/sound';
+import { playSound, playCrash, playPowerup, playCoinPitch, playTick, speakPedestrian, speakEquation, speak, startBackgroundMusic, stopBackgroundMusic } from '../utils/sound';
 
 const LANES = [-1.8, 0, 1.8];
 const RUN_Z = 0;            // character z
@@ -26,7 +26,7 @@ function makeProblem(level = 1) {
     const d = ans + r(-4, 4) || ans + 1;
     if (d >= 0) choices.add(d);
   }
-  return { text: `${a} ${op} ${b} = ?`, answer: ans, choices: [...choices].sort(() => Math.random() - 0.5) };
+  return { a, b, op, answer: ans, text: `${a} ${op} ${b} = ?`, choices: [...choices].sort(() => Math.random() - 0.5) };
 }
 
 function QuizModal({ title, subtitle, level, onSolved, onFailed, accent = '#a855f7', timeLimit = 0 }) {
@@ -39,8 +39,16 @@ function QuizModal({ title, subtitle, level, onSolved, onFailed, accent = '#a855
   const finish = (ok) => {
     if (doneRef.current) return;
     doneRef.current = true;
-    if (ok) { setResult('right'); playSound('chime'); setTimeout(() => onSolved(), 900); }
-    else { setResult('wrong'); playSound('buzz'); setTimeout(() => { if (onFailed) onFailed(); }, 1100); }
+    if (ok) {
+      setResult('right'); playSound('chime');
+      speak(['Great job!', 'You got it!', 'Awesome!', 'Well done!', 'Super!'][Math.floor(Math.random() * 5)], { clear: true, minGap: 0, pitch: 1.1 + Math.random() * 0.3 });
+      setTimeout(() => onSolved(), 1000);
+    } else {
+      // Teach: highlight + say the full equation, then continue
+      setResult('wrong'); playSound('buzz');
+      speakEquation(problem.a, problem.op, problem.b, problem.answer);
+      setTimeout(() => { if (onFailed) onFailed(); }, 3600);
+    }
   };
 
   useEffect(() => {
@@ -65,36 +73,56 @@ function QuizModal({ title, subtitle, level, onSolved, onFailed, accent = '#a855
   };
 
   const pct = timeLimit ? Math.max(0, (timeLeft / timeLimit) * 100) : 100;
+  const tokens = [String(problem.a), problem.op, String(problem.b), '=', String(problem.answer)];
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.78)', backdropFilter: 'blur(6px)', zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ background: 'white', border: `5px solid ${accent}`, borderRadius: '28px', padding: '28px', width: '90%', maxWidth: '460px', textAlign: 'center', fontFamily: "'Fredoka', sans-serif", boxShadow: '0 20px 50px rgba(0,0,0,0.35)' }}>
+      <div style={{ background: 'white', border: `5px solid ${accent}`, borderRadius: '28px', padding: '28px', width: '90%', maxWidth: '480px', textAlign: 'center', fontFamily: "'Fredoka', sans-serif", boxShadow: '0 20px 50px rgba(0,0,0,0.35)' }}>
         <h2 style={{ margin: '0 0 4px 0', color: accent, fontWeight: 900, fontSize: '1.5rem' }}>{title}</h2>
-        {subtitle && <p style={{ margin: '0 0 10px 0', color: '#64748b', fontWeight: 700 }}>{subtitle}</p>}
-        {timeLimit > 0 && (
-          <div style={{ margin: '0 0 12px 0' }}>
-            <div style={{ fontWeight: 900, color: timeLeft < 3 ? '#ef4444' : '#475569', marginBottom: 4 }}>⏱️ {Math.ceil(timeLeft)}s</div>
-            <div style={{ height: 10, background: '#e2e8f0', borderRadius: 99, overflow: 'hidden' }}>
-              <div style={{ width: `${pct}%`, height: '100%', background: timeLeft < 3 ? '#ef4444' : accent, transition: 'width 0.1s linear' }} />
+        {subtitle && result === null && <p style={{ margin: '0 0 10px 0', color: '#64748b', fontWeight: 700 }}>{subtitle}</p>}
+
+        {result === 'wrong' ? (
+          // --- Teaching reveal: highlight the equation while it's spoken ---
+          <div>
+            <p style={{ color: '#ef4444', fontWeight: 800, margin: '4px 0 12px 0' }}>Time's up! Let's learn it together:</p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap', margin: '6px 0 8px 0' }}>
+              {tokens.map((tk, i) => (
+                <span key={i} className="quiz-token-hl" style={{
+                  fontSize: '2.2rem', fontWeight: 900, padding: '6px 14px', borderRadius: 14,
+                  background: i === 4 ? '#22c55e' : '#fde68a', color: i === 4 ? '#fff' : '#78350f',
+                  border: `3px solid ${i === 4 ? '#16a34a' : '#f59e0b'}`, animationDelay: `${i * 0.12}s`
+                }}>{tk}</span>
+              ))}
             </div>
+            <p style={{ color: '#475569', fontWeight: 700, marginTop: 8 }}>Don't worry — you'll get the next one! 🌟</p>
           </div>
+        ) : (
+          <>
+            {timeLimit > 0 && result === null && (
+              <div style={{ margin: '0 0 12px 0' }}>
+                <div style={{ fontWeight: 900, color: timeLeft < 3 ? '#ef4444' : '#475569', marginBottom: 4 }}>⏱️ {Math.ceil(timeLeft)}s</div>
+                <div style={{ height: 10, background: '#e2e8f0', borderRadius: 99, overflow: 'hidden' }}>
+                  <div style={{ width: `${pct}%`, height: '100%', background: timeLeft < 3 ? '#ef4444' : accent, transition: 'width 0.1s linear' }} />
+                </div>
+              </div>
+            )}
+            <div style={{ fontSize: '2.4rem', fontWeight: 900, color: '#1e293b', margin: '6px 0 18px 0' }}>{problem.text}</div>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              {problem.choices.map((c) => {
+                const isPicked = picked === c;
+                const bg = result && isPicked ? (result === 'right' ? '#22c55e' : '#ef4444') : '#f1f5f9';
+                const col = result && isPicked ? 'white' : '#1e293b';
+                return (
+                  <button key={c} onClick={() => choose(c)} disabled={!!result}
+                    style={{ minWidth: '88px', minHeight: '64px', fontSize: '1.6rem', fontWeight: 900, borderRadius: '16px', border: `3px solid ${accent}`, background: bg, color: col, cursor: result ? 'default' : 'pointer', boxShadow: `0 5px 0 ${accent}` }}>
+                    {c}
+                  </button>
+                );
+              })}
+            </div>
+            {result === 'right' && <p style={{ color: '#16a34a', fontWeight: 800, marginTop: '14px' }}>{getRandomPraise()}</p>}
+          </>
         )}
-        <div style={{ fontSize: '2.4rem', fontWeight: 900, color: '#1e293b', margin: '6px 0 18px 0' }}>{problem.text}</div>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          {problem.choices.map((c) => {
-            const isPicked = picked === c;
-            const bg = result && isPicked ? (result === 'right' ? '#22c55e' : '#ef4444') : '#f1f5f9';
-            const col = result && isPicked ? 'white' : '#1e293b';
-            return (
-              <button key={c} onClick={() => choose(c)} disabled={!!result}
-                style={{ minWidth: '88px', minHeight: '64px', fontSize: '1.6rem', fontWeight: 900, borderRadius: '16px', border: `3px solid ${accent}`, background: bg, color: col, cursor: result ? 'default' : 'pointer', boxShadow: `0 5px 0 ${accent}` }}>
-                {c}
-              </button>
-            );
-          })}
-        </div>
-        {result === 'right' && <p style={{ color: '#16a34a', fontWeight: 800, marginTop: '14px' }}>{getRandomPraise()}</p>}
-        {result === 'wrong' && <p style={{ color: '#ef4444', fontWeight: 800, marginTop: '14px' }}>The answer was {problem.answer}.</p>}
       </div>
     </div>
   );
@@ -455,10 +483,8 @@ function RunnerScene({ engine, features, petColor, petAccessory }) {
       if (!it.dead && near && hitX) {
         if (it.type === 'coin') {
           if (it.y < 1.1 || e.charY > 0.5) { it.dead = true; e.onCoin(); }
-        } else if (it.type === 'teleporter') {
-          it.dead = true; e.onTeleport();
         } else if (it.type === 'powerup') {
-          it.dead = true; e.onPowerup(it.power);
+          it.dead = true; e.onPowerupHit(it.power);
         } else if (it.type === 'obstacle') {
           const safe = e.invincible > 0 || e.fx.jetpack > 0 || e.fx.boost > 0;
           const clears = it.overhead ? e.ducking : (e.charY > 0.85);
@@ -469,7 +495,6 @@ function RunnerScene({ engine, features, petColor, petAccessory }) {
       if (mesh) {
         mesh.position.set(ix, it.type === 'obstacle' ? 0 : it.y, it.z);
         if (it.type === 'coin') mesh.rotation.y += dt * 4;
-        if (it.type === 'teleporter') mesh.rotation.z += dt * 2;
         if (it.type === 'powerup') mesh.rotation.y += dt * 2.5;
       }
       if (it.z > DESPAWN_Z || it.dead) { e.items.splice(i, 1); e.removed = true; }
@@ -502,15 +527,6 @@ function RunnerScene({ engine, features, petColor, petAccessory }) {
                 <cylinderGeometry args={[0.28, 0.28, 0.07, 18]} />
                 <meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={0.7} metalness={0.7} roughness={0.2} />
               </mesh>
-            );
-          }
-          if (it.type === 'teleporter') {
-            return (
-              <group key={it.id} userData={{ id: it.id }} position={[ix, 1.1, it.z]}>
-                <mesh><torusGeometry args={[0.7, 0.14, 14, 28]} /><meshStandardMaterial color="#a855f7" emissive="#c084fc" emissiveIntensity={1.3} /></mesh>
-                <mesh><circleGeometry args={[0.6, 24]} /><meshBasicMaterial color="#7c3aed" transparent opacity={0.55} side={THREE.DoubleSide} /></mesh>
-                <mesh><torusGeometry args={[0.42, 0.06, 10, 24]} /><meshStandardMaterial color="#e9d5ff" emissive="#d8b4fe" emissiveIntensity={1.1} /></mesh>
-              </group>
             );
           }
           if (it.type === 'powerup') {
@@ -572,14 +588,9 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
           return;
         }
         const roll = Math.random();
-        const canTele = (e.distance - e.lastTeleDist) > 230;
-        const canPower = (e.distance - e.lastPowerDist) > 110;
-        if (canTele && roll < 0.09) {
-          const lane = Math.floor(Math.random() * 3);
-          e.items.push({ id: Math.random(), type: 'teleporter', lane, x: LANES[lane], y: 1.1, z: SPAWN_Z });
-          e.lastTeleDist = e.distance;
-        } else if (canPower && roll < 0.22) {
-          // floating power-up pickup
+        // Power-ups are the (spaced) puzzle triggers now — no more teleporters.
+        const canPower = (e.distance - e.lastPowerDist) > 200;
+        if (canPower && roll < 0.12) {
           const POWERS = ['magnet', 'jetpack', 'boost', 'double', 'shield'];
           const power = POWERS[Math.floor(Math.random() * POWERS.length)];
           const lane = Math.floor(Math.random() * 3);
@@ -609,7 +620,16 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
         }
       },
       onCoin() { engine.current.coins += (engine.current.fx.double > 0 ? 2 : 1); playCoinPitch(); },
-      onPowerup(power) {
+      // Collecting a power-up triggers a TIMED puzzle; solving it activates the power-up.
+      onPowerupHit(power) {
+        const e = engine.current;
+        e.paused = true;
+        e.pendingPower = power;
+        playSound('chime');
+        setPuzzle({ reason: 'powerup', power, timeLimit: 9 });
+        setPhase('puzzle');
+      },
+      activatePower(power) {
         const e = engine.current;
         playPowerup(power);
         const names = { magnet: '🧲 Coin Magnet!', jetpack: '🚀 Jetpack!', boost: '⚡ Speed Boost!', double: '✨ Double Coins!', shield: '🛡️ Shield!' };
@@ -621,12 +641,6 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
         setLastReward({ idx: -1, name: names[power] });
         setTimeout(() => setLastReward(null), 1800);
         setHud({ coins: e.coins, distance: Math.floor(e.distance), shields: e.shields, magnet: Math.ceil(e.fx.magnet), jetpack: Math.ceil(e.fx.jetpack), boost: Math.ceil(e.fx.boost), double: Math.ceil(e.fx.double), countdown: e.cpCountdown });
-      },
-      onTeleport() {
-        engine.current.paused = true;
-        playSound('chime');
-        setPuzzle({ reason: 'teleporter', timeLimit: Math.random() < 0.5 ? 8 : 0 });
-        setPhase('puzzle');
       },
       onHit(cause) {
         const e = engine.current;
@@ -710,22 +724,21 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
   useEffect(() => () => stopBackgroundMusic(), []);
 
   // puzzle outcomes
-  const solveTeleporter = () => {
+  const solvePowerupPuzzle = () => {
     const e = engine.current;
+    e.activatePower(e.pendingPower);   // activate the run power-up + toast
     e.coins += 10;
-    e.shields += 1;
-    const idx = pickReward();
+    const idx = pickReward();          // also feed hero-gear progression
     earnedRef.current.push(idx);
-    setLastReward({ idx, name: FEATURE_NAMES[idx] });
+    e.pendingPower = null;
     clearForTransition(120, 2.0);
     setPuzzle(null);
     setPhase('run');
     e.paused = false;
-    setHud({ coins: e.coins, distance: Math.floor(e.distance), shields: e.shields });
-    setTimeout(() => setLastReward(null), 2200);
   };
-  const failTeleporter = () => {
-    const e = engine.current;
+  const failPowerupPuzzle = () => {
+    const e = engine.current;          // teaching reveal already played in the modal
+    e.pendingPower = null;
     clearForTransition(120, 2.0);
     setPuzzle(null);
     setPhase('run');
@@ -924,7 +937,7 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
       {phase === 'intro' && (
         <Overlay>
           <h2 style={{ color: '#a855f7', fontWeight: 900, fontSize: '1.8rem', margin: '0 0 6px' }}>🚪 You opened the door!</h2>
-          <p style={{ color: '#475569', fontWeight: 700, margin: '0 0 16px' }}>Dodge cars, bikes & animals, grab coins, and snag floating <b>power-ups</b> (🧲 magnet, 🚀 jetpack, ⚡ boost, ✨ 2x, 🛡️ shield)! <b>⬅️ ➡️</b> switch lanes, <b>⬆️/Space</b> jump, <b>⬇️</b> slide under gates. Purple <b>teleporters</b> = bonus puzzles. Cross 🏁 <b>checkpoints</b> to save your spot!</p>
+          <p style={{ color: '#475569', fontWeight: 700, margin: '0 0 16px' }}>Dodge cars, bikes & animals and grab coins! Touch a floating <b>power-up</b> (🧲 magnet, 🚀 jetpack, ⚡ boost, ✨ 2x, 🛡️ shield) to start a quick <b>timed math puzzle</b> — solve it to win the power-up. <b>⬅️ ➡️</b> switch lanes, <b>⬆️/Space</b> jump, <b>⬇️</b> slide under gates. Cross 🏁 <b>checkpoints</b> to save your spot!</p>
           <button onClick={startRun} style={bigBtn}>🏃 Start Running!</button>
         </Overlay>
       )}
@@ -958,8 +971,16 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
       )}
 
       {/* Puzzle modal */}
-      {puzzle && puzzle.reason === 'teleporter' && (
-        <QuizModal title="🌀 Teleporter Puzzle!" subtitle={puzzle.timeLimit ? 'Quick! Beat the clock for a power-up!' : 'Solve it to win a power-up!'} level={level} accent="#a855f7" timeLimit={puzzle.timeLimit || 0} onSolved={solveTeleporter} onFailed={failTeleporter} />
+      {puzzle && puzzle.reason === 'powerup' && (
+        <QuizModal
+          title={`${{ magnet: '🧲', jetpack: '🚀', boost: '⚡', double: '✨', shield: '🛡️' }[puzzle.power] || '⭐'} Solve to grab the power-up!`}
+          subtitle="Beat the clock to win it!"
+          level={level}
+          accent="#a855f7"
+          timeLimit={puzzle.timeLimit || 9}
+          onSolved={solvePowerupPuzzle}
+          onFailed={failPowerupPuzzle}
+        />
       )}
       {puzzle && puzzle.reason === 'revive' && (
         <QuizModal title="🧠 Keep Running!" subtitle="Get it right to revive!" level={level} accent="#22c55e" onSolved={revive} onFailed={endRun} />

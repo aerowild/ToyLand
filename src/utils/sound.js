@@ -434,31 +434,75 @@ export function playTick(urgent) {
     } catch (e) { /* ignore */ }
 }
 
-// --- Spoken pedestrian reactions (kid-friendly, via browser speech) ---
+// --- Spoken reactions with VOICE VARIETY (browser speech) ---
 const GREETINGS_NEUTRAL = ['Hi there!', 'Hello!', 'Good morning!', 'Nice day!', 'Hey, friend!'];
 const GREETINGS_FAST = ['Whoa, slow down!', 'Hey, watch it!', 'Too fast!', 'Careful there!', 'Coming through!', 'Oh my!'];
 const GREETINGS_CHEER = ['Wow, go go go!', 'Awesome running!', 'You are speedy!', 'Nice moves!'];
+
+// Voice pool (loaded async by the browser)
+let _voices = [];
+function loadVoices() {
+    try {
+        if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+        const all = window.speechSynthesis.getVoices() || [];
+        const en = all.filter(v => /^en(-|_|$)/i.test(v.lang));
+        _voices = en.length ? en : all;
+    } catch (e) { /* ignore */ }
+}
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    loadVoices();
+    try { window.speechSynthesis.onvoiceschanged = loadVoices; } catch (e) { /* ignore */ }
+}
+
 let lastSpeakAt = 0;
-export function speak(text) {
+// opts: { rate, pitch, volume, voiceIndex, clear, minGap }
+export function speak(text, opts = {}) {
     if (!soundEnabled) return;
     try {
         if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+        if (!_voices.length) loadVoices();
         const nowMs = Date.now();
-        if (nowMs - lastSpeakAt < 1500) return; // throttle so it isn't spammy
+        const minGap = opts.minGap != null ? opts.minGap : 1200;
+        if (nowMs - lastSpeakAt < minGap) return; // throttle so it isn't spammy
         lastSpeakAt = nowMs;
         const u = new SpeechSynthesisUtterance(text);
-        u.rate = 1.1; u.pitch = 1.4; u.volume = 0.85;
-        window.speechSynthesis.cancel();
+        // variety: randomized pitch/rate unless explicitly set -> not monotone/robotic
+        u.rate = opts.rate != null ? opts.rate : (0.92 + Math.random() * 0.28);
+        u.pitch = opts.pitch != null ? opts.pitch : (0.8 + Math.random() * 0.8);
+        u.volume = opts.volume != null ? opts.volume : 0.95;
+        if (_voices.length) {
+            const idx = opts.voiceIndex != null ? (opts.voiceIndex % _voices.length) : Math.floor(Math.random() * _voices.length);
+            u.voice = _voices[idx];
+        }
+        if (opts.clear) window.speechSynthesis.cancel();
         window.speechSynthesis.speak(u);
     } catch (e) { /* ignore */ }
 }
+
 export function speakPedestrian(kind) {
-    const r = Math.random();
     let pool;
     if (kind === 'fast') pool = GREETINGS_FAST;
     else if (kind === 'cheer') pool = GREETINGS_CHEER;
     else pool = GREETINGS_NEUTRAL;
-    speak(pool[Math.floor(Math.random() * pool.length)]);
+    // each pedestrian gets a different random voice + pitch (variety)
+    speak(pool[Math.floor(Math.random() * pool.length)], { voiceIndex: Math.floor(Math.random() * 99), pitch: 0.8 + Math.random() * 0.8 });
+}
+
+// --- Number-to-words (0..100 covers 2nd grade) + spoken equation for teaching ---
+const ONES = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+const TENS = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+export function numToWords(n) {
+    n = Math.round(Math.abs(n));
+    if (n < 20) return ONES[n];
+    if (n < 100) { const t = Math.floor(n / 10), o = n % 10; return TENS[t] + (o ? '-' + ONES[o] : ''); }
+    if (n === 100) return 'one hundred';
+    return String(n);
+}
+// Speaks "twelve minus ten equals two" clearly (teaching voice: slower, steady).
+export function speakEquation(a, op, b, ans) {
+    const word = op === '+' ? 'plus' : op === '-' ? 'minus' : op === '×' || op === '*' ? 'times' : op;
+    const phrase = `${numToWords(a)} ${word} ${numToWords(b)} equals ${numToWords(ans)}`;
+    speak(phrase, { rate: 0.82, pitch: 1.05, volume: 1.0, voiceIndex: 0, clear: true, minGap: 0 });
 }
 
 // --- Looping background music (original cheerful chiptune) ---
