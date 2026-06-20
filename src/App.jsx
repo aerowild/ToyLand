@@ -752,6 +752,13 @@ export default function App() {
             {label}
           </button>
         ))}
+        <button
+          className="bubble-btn"
+          onClick={() => { playSound('click'); setProfileUI((s) => ({ ...s, modal: true })); }}
+          style={{ ...btnStyle, fontSize: '1rem', padding: '10px 16px', background: '#8b5cf6', color: 'white', borderColor: '#6d28d9', boxShadow: '0 3px 0 #6d28d9' }}
+        >
+          👤 Players & Report
+        </button>
       </nav>
 
       {/* Main content */}
