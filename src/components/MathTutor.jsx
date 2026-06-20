@@ -2,7 +2,7 @@
 // Short, animated, voiced mini-lessons that TEACH how to solve an add/subtract problem,
 // using proven 2nd-grade mental-math strategies (count on, make-a-ten, count up, place value).
 import React, { useState, useEffect, useRef } from 'react';
-import { speak, numToWords } from '../utils/sound';
+import { speak, numToWords, primeSpeech } from '../utils/sound';
 
 /* ---------- strategy chooser ---------- */
 function chooseStrategy(a, op, b) {
@@ -177,36 +177,27 @@ export default function MathTutor({ a, op, b, answer, onDone }) {
   const [step, setStep] = useState(0);
   const [finished, setFinished] = useState(false);
   const timers = useRef([]);
-  const hasTTS = typeof window !== 'undefined' && 'speechSynthesis' in window;
 
   const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = []; };
 
-  // Advance only AFTER the current line finishes speaking, so lines never get cut off.
-  const playStep = (i) => {
+  // Pace each step by the LENGTH of its line (deterministic) so a line is never cut —
+  // this behaves identically on the first play and on replay, regardless of TTS warm-up.
+  const runFrom = (i) => {
     if (i >= plan.frames.length) { setFinished(true); return; }
     setStep(i);
     const say = plan.frames[i].say;
-    let advanced = false;
-    const next = () => {
-      if (advanced) return;
-      advanced = true;
-      timers.current.push(setTimeout(() => playStep(i + 1), 550)); // small breath between steps
-    };
-    if (hasTTS) {
-      speak(say, { female: true, rate: 0.9, pitch: 1.05, volume: 1, clear: true, minGap: 0, onEnd: next });
-      // backstop in case onend never fires (rare); generous so it won't cut speech
-      timers.current.push(setTimeout(next, 1200 + say.length * 95));
-    } else {
-      // no speech engine: pace by reading length
-      timers.current.push(setTimeout(next, Math.max(2600, say.length * 80)));
-    }
+    speak(say, { female: true, rate: 0.9, pitch: 1.05, volume: 1, clear: true, minGap: 0 });
+    const dur = Math.max(2800, 1000 + say.length * 78); // ~ time to read it + a small pause
+    timers.current.push(setTimeout(() => runFrom(i + 1), dur));
   };
 
   const play = () => {
     clearTimers();
     try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ }
+    primeSpeech();
     setFinished(false);
-    playStep(0);
+    // tiny delay so the just-cancelled engine is ready for the first line
+    timers.current.push(setTimeout(() => runFrom(0), 250));
   };
 
   useEffect(() => { play(); return clearTimers; /* eslint-disable-next-line */ }, []);

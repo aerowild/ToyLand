@@ -499,9 +499,26 @@ export function speak(text, opts = {}) {
             voice = _voices[idx];
         }
         if (voice) u.voice = voice;
-        if (opts.onEnd) { u.onend = opts.onEnd; u.onerror = opts.onEnd; }
+        if (opts.onEnd) u.onend = opts.onEnd; // note: do NOT advance on error (first-utterance quirk)
         if (opts.clear) window.speechSynthesis.cancel();
         window.speechSynthesis.speak(u);
+    } catch (e) { /* ignore */ }
+}
+
+// Warm up the speech engine on the first user gesture so the FIRST real line
+// doesn't start late / get cut (Chrome/Safari prime issue). Safe to call often.
+let _primed = false;
+export function primeSpeech() {
+    try {
+        if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+        window.speechSynthesis.resume();
+        if (!_voices.length) loadVoices();
+        if (!_primed) {
+            _primed = true;
+            const u = new SpeechSynthesisUtterance(' ');
+            u.volume = 0; u.rate = 2;
+            window.speechSynthesis.speak(u);
+        }
     } catch (e) { /* ignore */ }
 }
 

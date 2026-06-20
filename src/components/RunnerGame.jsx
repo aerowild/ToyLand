@@ -7,7 +7,7 @@ import Hero3D from './Hero3D';
 import MathQuest3D from './MathQuest3D';
 import MathTutor from './MathTutor';
 import { FEATURE_NAMES, getRandomPraise } from '../utils/mathQuestState';
-import { playSound, playCrash, playPowerup, playCoinPitch, playTick, speakPedestrian, speakEquation, speak, startBackgroundMusic, stopBackgroundMusic } from '../utils/sound';
+import { playSound, playCrash, playPowerup, playCoinPitch, playTick, speakPedestrian, speakEquation, speak, primeSpeech, startBackgroundMusic, stopBackgroundMusic } from '../utils/sound';
 import { getAdaptiveProblem, recordPuzzleResult } from '../utils/profileStore';
 
 const LANES = [-1.8, 0, 1.8];
@@ -706,7 +706,7 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
     e.graceUntil = e.distance + graceMeters;
   };
 
-  const startRun = () => { clearForTransition(80, 2.0); engine.current.paused = false; startBackgroundMusic(); setPhase('run'); };
+  const startRun = () => { primeSpeech(); clearForTransition(80, 2.0); engine.current.paused = false; startBackgroundMusic(); setPhase('run'); };
 
   // controls
   const setLane = (dir) => {
