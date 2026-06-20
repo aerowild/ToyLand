@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { speak, numToWords } from '../utils/sound';
 
-const STEP_MS = 2100;
+const STEP_MS = 2730; // paced slow (30% slower than before) for young learners
 
 /* ---------- strategy chooser ---------- */
 function chooseStrategy(a, op, b) {
@@ -16,7 +16,7 @@ function chooseStrategy(a, op, b) {
   return 'countUp';                                 // subtraction -> count up ("think addition")
 }
 
-/* ---------- build the lesson frames ---------- */
+/* ---------- build the lesson frames (with an intro step so it's more elaborate) ---------- */
 function buildPlan(a, op, b, ans) {
   const strat = chooseStrategy(a, op, b);
 
@@ -26,23 +26,26 @@ function buildPlan(a, op, b, ans) {
       kind: 'line', tip: 'Start with the BIGGER number, then count on!',
       min: 0, max: a + b,
       frames: [
-        { say: `Start at the bigger number, ${numToWords(big)}.`, marker: big, arcs: [] },
-        { say: `Now count on ${numToWords(small)} more.`, marker: a + b, arcs: [{ from: big, to: a + b, label: `+${small}` }] },
-        { say: `That lands on ${numToWords(ans)}. ${numToWords(a)} plus ${numToWords(b)} equals ${numToWords(ans)}.`, marker: ans, arcs: [{ from: big, to: a + b, label: `+${small}` }] },
+        { say: `Let's add ${numToWords(a)} plus ${numToWords(b)}. The trick is to COUNT ON.`, marker: big, arcs: [] },
+        { say: `First, find the bigger number, ${numToWords(big)}, and start there.`, marker: big, arcs: [] },
+        { say: `Now count on ${numToWords(small)} more, one step at a time.`, marker: a + b, arcs: [{ from: big, to: a + b, label: `+${small}` }] },
+        { say: `We landed on ${numToWords(ans)}. So ${numToWords(a)} plus ${numToWords(b)} equals ${numToWords(ans)}.`, marker: ans, arcs: [{ from: big, to: a + b, label: `+${small}` }] },
       ],
     };
   }
 
   if (strat === 'makeTenAdd') {
     const start = Math.max(a, b), other = Math.min(a, b);
-    const need = 10 - start;          // how many to borrow to reach 10
-    const rest = other - need;        // what's left after making 10
+    const need = 10 - start;
+    const rest = other - need;
     return {
       kind: 'ten', tip: 'Jump to the friendly 10 first!',
       frames: [
-        { say: `Let's make a ten! Start with ${numToWords(start)}.`, filled: start, glow: [] },
-        { say: `Take ${numToWords(need)} from the ${numToWords(other)} to fill the ten.`, filled: 10, glow: range(start, 10) },
-        { say: `${numToWords(other)} minus ${numToWords(need)} leaves ${numToWords(rest)}. Ten plus ${numToWords(rest)} is ${numToWords(ans)}.`, filled: 10 + rest, glow: range(10, 10 + rest) },
+        { say: `Let's add ${numToWords(a)} plus ${numToWords(b)}. The trick is to MAKE A TEN.`, filled: 0, glow: [] },
+        { say: `Start by putting ${numToWords(start)} dots in the ten-frame.`, filled: start, glow: range(0, start) },
+        { say: `Ten is a friendly number. We need ${numToWords(need)} more to fill it, so take ${numToWords(need)} from the ${numToWords(other)}.`, filled: 10, glow: range(start, 10) },
+        { say: `That used ${numToWords(need)}. ${numToWords(other)} minus ${numToWords(need)} leaves ${numToWords(rest)}.`, filled: 10, glow: [] },
+        { say: `Ten plus ${numToWords(rest)} is easy: ${numToWords(ans)}!`, filled: 10 + rest, glow: range(10, 10 + rest) },
       ],
     };
   }
@@ -54,24 +57,28 @@ function buildPlan(a, op, b, ans) {
       kind: 'place', tip: 'Add the tens and the ones separately!',
       a, b, ans, aT, aO, bT, bO,
       frames: [
-        { say: `Break ${numToWords(a)} and ${numToWords(b)} into tens and ones.`, show: 0 },
-        { say: `Add the tens: ${numToWords(aT)} plus ${numToWords(bT)} is ${numToWords(aT + bT)}.`, show: 1 },
-        { say: `Add the ones: ${numToWords(aO)} plus ${numToWords(bO)} is ${numToWords(aO + bO)}.`, show: 2 },
-        { say: `Put them together: ${numToWords(ans)}.`, show: 3 },
+        { say: `Let's add ${numToWords(a)} plus ${numToWords(b)}. The trick is to split into TENS and ONES.`, show: 0 },
+        { say: `${numToWords(a)} is ${numToWords(aT)} and ${numToWords(aO)}. ${numToWords(b)} is ${numToWords(bT)} and ${numToWords(bO)}.`, show: 0 },
+        { say: `Add the tens first: ${numToWords(aT)} plus ${numToWords(bT)} is ${numToWords(aT + bT)}.`, show: 1 },
+        { say: `Now add the ones: ${numToWords(aO)} plus ${numToWords(bO)} is ${numToWords(aO + bO)}.`, show: 2 },
+        { say: `Put the tens and ones back together: ${numToWords(ans)}.`, show: 3 },
       ],
     };
   }
 
   // countUp (subtraction, "think addition") — chunked jumps on a number line
   const jumps = countUpJumps(b, a);
-  const frames = [{ say: `To find ${numToWords(a)} minus ${numToWords(b)}, count UP from ${numToWords(b)}.`, marker: b, arcs: [] }];
+  const frames = [
+    { say: `Let's solve ${numToWords(a)} minus ${numToWords(b)}. The trick: subtracting is just COUNTING UP.`, marker: b, arcs: [] },
+    { say: `Start at the smaller number, ${numToWords(b)}.`, marker: b, arcs: [] },
+  ];
   let cur = b; const arcs = [];
   jumps.forEach((j) => {
     arcs.push({ from: cur, to: cur + j, label: `+${j}` });
     cur += j;
-    frames.push({ say: `Jump ${numToWords(j)} to ${numToWords(cur)}.`, marker: cur, arcs: arcs.slice() });
+    frames.push({ say: `Jump up ${numToWords(j)} to reach ${numToWords(cur)}.`, marker: cur, arcs: arcs.slice() });
   });
-  frames.push({ say: `Add the jumps: that's ${numToWords(ans)}. So ${numToWords(a)} minus ${numToWords(b)} equals ${numToWords(ans)}.`, marker: a, arcs: arcs.slice() });
+  frames.push({ say: `Now add up all the jumps: that makes ${numToWords(ans)}. So ${numToWords(a)} minus ${numToWords(b)} equals ${numToWords(ans)}.`, marker: a, arcs: arcs.slice() });
   return { kind: 'line', tip: 'Subtracting is just counting UP!', min: b, max: a, frames };
 }
 
@@ -117,7 +124,7 @@ function NumberLine({ min, max, marker, arcs }) {
       <defs>
         <marker id="ah" markerWidth="8" markerHeight="8" refX="5" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#a855f7" /></marker>
       </defs>
-      <circle cx={x(marker)} cy={baseY} r="9" fill="#22c55e" stroke="#fff" strokeWidth="2" style={{ transition: 'cx 0.5s ease' }} />
+      <circle cx={x(marker)} cy={baseY} r="9" fill="#22c55e" stroke="#fff" strokeWidth="2" style={{ transition: 'cx 0.7s ease' }} />
     </svg>
   );
 }
@@ -132,7 +139,7 @@ function TenFrames({ filled, glow }) {
           {cells.slice(f * 10, f * 10 + 10).map((idx) => {
             const on = idx < filled;
             const hot = glow.includes(idx);
-            return <div key={idx} style={{ width: 26, height: 26, borderRadius: '50%', border: '2px solid #cbd5e1', background: on ? (hot ? '#f59e0b' : '#22c55e') : 'white', transition: 'background 0.3s' }} />;
+            return <div key={idx} style={{ width: 26, height: 26, borderRadius: '50%', border: '2px solid #cbd5e1', background: on ? (hot ? '#f59e0b' : '#22c55e') : 'white', transition: 'background 0.45s' }} />;
           })}
         </div>
       ))}
@@ -155,10 +162,10 @@ function PlaceValue({ plan, show }) {
         {cell('Ones', `${aO} + ${bO}`, '#f59e0b')}
       </div>
       <div style={{ display: 'flex', gap: 10 }}>
-        <div style={{ flex: 1, opacity: show >= 1 ? 1 : 0.25, transition: 'opacity 0.3s' }}>{cell('Tens make', aT + bT, '#3b82f6')}</div>
-        <div style={{ flex: 1, opacity: show >= 2 ? 1 : 0.25, transition: 'opacity 0.3s' }}>{cell('Ones make', aO + bO, '#f59e0b')}</div>
+        <div style={{ flex: 1, opacity: show >= 1 ? 1 : 0.25, transition: 'opacity 0.45s' }}>{cell('Tens make', aT + bT, '#3b82f6')}</div>
+        <div style={{ flex: 1, opacity: show >= 2 ? 1 : 0.25, transition: 'opacity 0.45s' }}>{cell('Ones make', aO + bO, '#f59e0b')}</div>
       </div>
-      <div style={{ marginTop: 12, textAlign: 'center', fontSize: '1.6rem', fontWeight: 900, color: show >= 3 ? '#16a34a' : '#cbd5e1', transition: 'color 0.3s' }}>
+      <div style={{ marginTop: 12, textAlign: 'center', fontSize: '1.6rem', fontWeight: 900, color: show >= 3 ? '#16a34a' : '#cbd5e1', transition: 'color 0.45s' }}>
         {aT + bT} + {aO + bO} = {show >= 3 ? ans : '?'}
       </div>
     </div>
@@ -170,25 +177,29 @@ export default function MathTutor({ a, op, b, answer, onDone }) {
   const planRef = useRef(buildPlan(a, op, b, answer));
   const plan = planRef.current;
   const [step, setStep] = useState(0);
+  const [finished, setFinished] = useState(false);
   const timers = useRef([]);
 
-  useEffect(() => {
+  const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = []; };
+
+  const play = () => {
+    clearTimers();
+    try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ }
+    setFinished(false);
+    setStep(0);
     plan.frames.forEach((f, i) => {
       timers.current.push(setTimeout(() => {
         setStep(i);
-        speak(f.say, { rate: 0.84, pitch: 1.05, volume: 1, voiceIndex: 0, clear: true, minGap: 0 });
+        speak(f.say, { rate: 0.82, pitch: 1.05, volume: 1, voiceIndex: 0, clear: true, minGap: 0 });
       }, i * STEP_MS));
     });
-    timers.current.push(setTimeout(() => { finish(); }, plan.frames.length * STEP_MS + 500));
-    return () => timers.current.forEach(clearTimeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const finish = () => {
-    timers.current.forEach(clearTimeout);
-    try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ }
-    if (onDone) onDone();
+    timers.current.push(setTimeout(() => { setFinished(true); }, plan.frames.length * STEP_MS + 300));
   };
+
+  useEffect(() => { play(); return clearTimers; /* eslint-disable-next-line */ }, []);
+
+  const ok = () => { clearTimers(); try { window.speechSynthesis.cancel(); } catch (e) {} if (onDone) onDone(); };
+  const skip = () => { clearTimers(); try { window.speechSynthesis.cancel(); } catch (e) {} setStep(plan.frames.length - 1); setFinished(true); };
 
   const frame = plan.frames[step] || plan.frames[0];
 
@@ -204,7 +215,7 @@ export default function MathTutor({ a, op, b, answer, onDone }) {
           {plan.kind === 'place' && <PlaceValue plan={plan} show={frame.show} />}
         </div>
 
-        <div style={{ minHeight: 44, color: '#334155', fontWeight: 700, fontSize: '1.05rem', margin: '10px 0' }}>{frame.say}</div>
+        <div style={{ minHeight: 48, color: '#334155', fontWeight: 700, fontSize: '1.05rem', margin: '10px 0' }}>{frame.say}</div>
         <div style={{ background: '#fef9c3', border: '2px solid #fbbf24', borderRadius: 12, padding: '8px 12px', color: '#854d0e', fontWeight: 800, fontSize: '0.95rem' }}>💡 {plan.tip}</div>
 
         <div style={{ display: 'flex', gap: 6, justifyContent: 'center', margin: '12px 0 4px 0' }}>
@@ -213,7 +224,14 @@ export default function MathTutor({ a, op, b, answer, onDone }) {
           ))}
         </div>
 
-        <button onClick={finish} style={{ marginTop: 10, fontFamily: 'inherit', fontWeight: 900, fontSize: '1rem', padding: '12px 22px', borderRadius: 14, border: 'none', background: '#64748b', color: 'white', cursor: 'pointer', boxShadow: '0 4px 0 #475569' }}>⏭️ Skip</button>
+        {finished ? (
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 10 }}>
+            <button onClick={play} style={{ fontFamily: 'inherit', fontWeight: 900, fontSize: '1rem', padding: '12px 22px', borderRadius: 14, border: 'none', background: '#a855f7', color: 'white', cursor: 'pointer', boxShadow: '0 4px 0 #7c3aed' }}>🔁 Replay</button>
+            <button onClick={ok} style={{ fontFamily: 'inherit', fontWeight: 900, fontSize: '1rem', padding: '12px 26px', borderRadius: 14, border: 'none', background: '#22c55e', color: 'white', cursor: 'pointer', boxShadow: '0 4px 0 #16a34a' }}>👍 OK, got it!</button>
+          </div>
+        ) : (
+          <button onClick={skip} style={{ marginTop: 10, fontFamily: 'inherit', fontWeight: 900, fontSize: '1rem', padding: '12px 22px', borderRadius: 14, border: 'none', background: '#64748b', color: 'white', cursor: 'pointer', boxShadow: '0 4px 0 #475569' }}>⏭️ Skip</button>
+        )}
       </div>
     </div>
   );
