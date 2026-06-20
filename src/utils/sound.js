@@ -441,12 +441,14 @@ const GREETINGS_CHEER = ['Wow, go go go!', 'Awesome running!', 'You are speedy!'
 
 // Voice pool (loaded async by the browser)
 let _voices = [];
+let _femaleVoice = undefined; // cached pick
 function loadVoices() {
     try {
         if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
         const all = window.speechSynthesis.getVoices() || [];
         const en = all.filter(v => /^en(-|_|$)/i.test(v.lang));
         _voices = en.length ? en : all;
+        _femaleVoice = undefined; // re-pick when the list changes
     } catch (e) { /* ignore */ }
 }
 if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -454,8 +456,28 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     try { window.speechSynthesis.onvoiceschanged = loadVoices; } catch (e) { /* ignore */ }
 }
 
+// Choose the most natural-sounding female English voice available.
+const FEMALE_HINTS = ['female', 'samantha', 'victoria', 'karen', 'moira', 'tessa', 'fiona', 'serena', 'allison', 'ava', 'susan', 'zira', 'hazel', 'aria', 'jenny', 'sonia', 'natasha', 'libby', 'michelle', 'amelie', 'kathy', 'google uk english female', 'google us english'];
+function pickFemaleVoice() {
+    if (_femaleVoice !== undefined) return _femaleVoice;
+    if (!_voices.length) loadVoices();
+    let best = null, bestScore = -1;
+    _voices.forEach((v) => {
+        const n = (v.name || '').toLowerCase();
+        let score = 0;
+        if (FEMALE_HINTS.some((f) => n.includes(f))) score += 10;
+        if (n.includes('natural')) score += 6;       // prefer "Natural"/neural voices = organic
+        if (n.includes('google')) score += 4;
+        if (n.includes('online') || n.includes('premium') || n.includes('enhanced')) score += 3;
+        if (/^en-us/i.test(v.lang)) score += 2; else if (/^en/i.test(v.lang)) score += 1;
+        if (score > bestScore) { bestScore = score; best = v; }
+    });
+    _femaleVoice = best || null;
+    return _femaleVoice;
+}
+
 let lastSpeakAt = 0;
-// opts: { rate, pitch, volume, voiceIndex, clear, minGap }
+// opts: { rate, pitch, volume, voiceIndex, female, clear, minGap, onEnd }
 export function speak(text, opts = {}) {
     if (!soundEnabled) return;
     try {
@@ -466,14 +488,18 @@ export function speak(text, opts = {}) {
         if (nowMs - lastSpeakAt < minGap) return; // throttle so it isn't spammy
         lastSpeakAt = nowMs;
         const u = new SpeechSynthesisUtterance(text);
-        // variety: randomized pitch/rate unless explicitly set -> not monotone/robotic
-        u.rate = opts.rate != null ? opts.rate : (0.92 + Math.random() * 0.28);
-        u.pitch = opts.pitch != null ? opts.pitch : (0.8 + Math.random() * 0.8);
+        // Natural defaults: gentle rate, near-normal pitch (organic, not robotic)
+        u.rate = opts.rate != null ? opts.rate : (opts.female ? 0.92 : (0.92 + Math.random() * 0.28));
+        u.pitch = opts.pitch != null ? opts.pitch : (opts.female ? 1.05 : (0.8 + Math.random() * 0.8));
         u.volume = opts.volume != null ? opts.volume : 0.95;
-        if (_voices.length) {
+        let voice = null;
+        if (opts.female) voice = pickFemaleVoice();
+        if (!voice && _voices.length) {
             const idx = opts.voiceIndex != null ? (opts.voiceIndex % _voices.length) : Math.floor(Math.random() * _voices.length);
-            u.voice = _voices[idx];
+            voice = _voices[idx];
         }
+        if (voice) u.voice = voice;
+        if (opts.onEnd) { u.onend = opts.onEnd; u.onerror = opts.onEnd; }
         if (opts.clear) window.speechSynthesis.cancel();
         window.speechSynthesis.speak(u);
     } catch (e) { /* ignore */ }

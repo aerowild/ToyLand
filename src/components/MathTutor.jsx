@@ -4,8 +4,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { speak, numToWords } from '../utils/sound';
 
-const STEP_MS = 2730; // paced slow (30% slower than before) for young learners
-
 /* ---------- strategy chooser ---------- */
 function chooseStrategy(a, op, b) {
   if (op === '+') {
@@ -179,21 +177,36 @@ export default function MathTutor({ a, op, b, answer, onDone }) {
   const [step, setStep] = useState(0);
   const [finished, setFinished] = useState(false);
   const timers = useRef([]);
+  const hasTTS = typeof window !== 'undefined' && 'speechSynthesis' in window;
 
   const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = []; };
+
+  // Advance only AFTER the current line finishes speaking, so lines never get cut off.
+  const playStep = (i) => {
+    if (i >= plan.frames.length) { setFinished(true); return; }
+    setStep(i);
+    const say = plan.frames[i].say;
+    let advanced = false;
+    const next = () => {
+      if (advanced) return;
+      advanced = true;
+      timers.current.push(setTimeout(() => playStep(i + 1), 550)); // small breath between steps
+    };
+    if (hasTTS) {
+      speak(say, { female: true, rate: 0.9, pitch: 1.05, volume: 1, clear: true, minGap: 0, onEnd: next });
+      // backstop in case onend never fires (rare); generous so it won't cut speech
+      timers.current.push(setTimeout(next, 1200 + say.length * 95));
+    } else {
+      // no speech engine: pace by reading length
+      timers.current.push(setTimeout(next, Math.max(2600, say.length * 80)));
+    }
+  };
 
   const play = () => {
     clearTimers();
     try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ }
     setFinished(false);
-    setStep(0);
-    plan.frames.forEach((f, i) => {
-      timers.current.push(setTimeout(() => {
-        setStep(i);
-        speak(f.say, { rate: 0.82, pitch: 1.05, volume: 1, voiceIndex: 0, clear: true, minGap: 0 });
-      }, i * STEP_MS));
-    });
-    timers.current.push(setTimeout(() => { setFinished(true); }, plan.frames.length * STEP_MS + 300));
+    playStep(0);
   };
 
   useEffect(() => { play(); return clearTimers; /* eslint-disable-next-line */ }, []);
