@@ -1,5 +1,8 @@
 # Changelog
 
+## 2026-06-20 (per-profile progress)
+- Fixed profile switching: ALL game state (stars, hero level/XP, current stage, unlocked/equipped gear, achievements, purchased items, quests, pet, login streak) is now stored PER PROFILE under a `toy_land_<profileId>_*` namespace. Switching/creating/deleting a profile reloads that profile's full state (RELOAD action); new profiles start fresh; existing progress migrates once to the first profile.
+
 ## 2026-06-20 (interactive math tutor)
 - Added `MathTutor` — short, animated, voiced mini-lessons that TEACH a missed add/subtract problem using proven 2nd-grade strategies, picked per-problem: count-on (number line), make-a-ten (ten-frames), count-up / "think addition" (chunked number-line jumps), and place-value partial sums. Each ends with a one-line trick.
 - Wired into the runner quiz: timed puzzles auto-launch the tutor on a wrong/timeout (with ⏭️ Skip); non-timed puzzles get a "🤔 Show me how" button.

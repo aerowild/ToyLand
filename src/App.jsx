@@ -70,10 +70,11 @@ const storage = {
   remove(key) { localStorage.removeItem(nsPrefix() + key); },
 };
 
-// One-time: copy the old flat `toy_land_*` game data into the first profile's namespace.
+// One-time (global): copy the old flat `toy_land_*` game data into the FIRST profile's
+// namespace. Runs once ever — new profiles afterward start completely fresh.
 function migrateLegacyGameData() {
   try {
-    const flag = `${nsPrefix()}_migrated`;
+    const flag = 'toy_land_migrated_v1';
     if (localStorage.getItem(flag)) return;
     GAME_KEYS.forEach((key) => {
       const legacy = localStorage.getItem(LEGACY_PREFIX + key);
@@ -198,6 +199,7 @@ function reducer(state, action) {
     case 'ADD_FLOAT_EMOJI': return { ...state, petFloatEmojis: [...state.petFloatEmojis, action.payload] };
     case 'REMOVE_FLOAT_EMOJI': return { ...state, petFloatEmojis: state.petFloatEmojis.filter(e => e.id !== action.payload) };
     case 'RESET': return { ...initState(), activeView: 'dashboard', isAdminMode: false };
+    case 'RELOAD': return { ...initState(), activeView: state.activeView, soundOn: state.soundOn };
     default: return state;
   }
 }
@@ -637,8 +639,8 @@ export default function App() {
       const backup = storage.getJSON('admin_backup');
       if (backup) {
         BACKUP_KEYS.forEach(key => {
-          if (backup[STORAGE_PREFIX + key] !== undefined) localStorage.setItem(STORAGE_PREFIX + key, backup[STORAGE_PREFIX + key]);
-          else localStorage.removeItem(STORAGE_PREFIX + key);
+          if (backup[nsPrefix() + key] !== undefined) localStorage.setItem(nsPrefix() + key, backup[nsPrefix() + key]);
+          else localStorage.removeItem(nsPrefix() + key);
         });
       }
       storage.remove('admin_backup');
@@ -664,7 +666,7 @@ export default function App() {
       const pwd = window.prompt("Enter Admin Password:");
       if (pwd === '12345') {
         const backupData = {};
-        BACKUP_KEYS.forEach(key => { const val = localStorage.getItem(STORAGE_PREFIX + key); if (val !== null) backupData[STORAGE_PREFIX + key] = val; });
+        BACKUP_KEYS.forEach(key => { const val = localStorage.getItem(nsPrefix() + key); if (val !== null) backupData[nsPrefix() + key] = val; });
         storage.set('admin_backup', backupData);
         storage.set('admin_active', 'true');
         const allFeatures = Array.from({ length: 24 }, (_, i) => i);
@@ -1582,14 +1584,14 @@ export default function App() {
                 const isActive = activeProfile && p.id === activeProfile.id;
                 return (
                   <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <button onClick={() => { playSound('click'); setActiveProfile(p.id); refreshProfiles(); }}
+                    <button onClick={() => { playSound('click'); setActiveProfile(p.id); dispatch({ type: 'RELOAD' }); refreshProfiles(); }}
                       style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 14, border: `3px solid ${isActive ? '#8b5cf6' : '#e2e8f0'}`, background: isActive ? '#f3e8ff' : 'white', color: '#1e293b', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', minHeight: 48 }}>
                       <span style={{ fontSize: '1.6rem' }}>{p.avatar}</span>
                       <span style={{ flex: 1, textAlign: 'left' }}>{p.name}</span>
                       {isActive && <span style={{ color: '#16a34a', fontWeight: 900 }}>✓ Playing</span>}
                     </button>
                     {listProfiles().length > 1 && (
-                      <button onClick={() => { if (window.confirm(`Delete ${p.name}'s profile?`)) { deleteProfile(p.id); refreshProfiles(); } }}
+                      <button onClick={() => { if (window.confirm(`Delete ${p.name}'s profile?`)) { deleteProfile(p.id); dispatch({ type: 'RELOAD' }); refreshProfiles(); } }}
                         style={{ width: 44, height: 44, borderRadius: 12, border: '2px solid #fecaca', background: '#fee2e2', cursor: 'pointer', fontSize: '1.1rem' }}>🗑️</button>
                     )}
                   </div>
@@ -1609,7 +1611,7 @@ export default function App() {
                 <input value={profileUI.newName || ''} maxLength={16} placeholder="Type a name…"
                   onChange={(e) => setProfileUI((s) => ({ ...s, newName: e.target.value }))}
                   style={{ flex: 1, padding: '10px 14px', borderRadius: 12, border: '2px solid #cbd5e1', fontSize: '1rem', fontFamily: 'inherit', minHeight: 48 }} />
-                <button onClick={() => { playSound('chime'); createProfile(profileUI.newName, profileUI.newAvatar || '🦸'); setProfileUI((s) => ({ ...s, newName: '', ver: s.ver + 1 })); }}
+                <button onClick={() => { playSound('chime'); createProfile(profileUI.newName, profileUI.newAvatar || '🦸'); dispatch({ type: 'RELOAD' }); setProfileUI((s) => ({ ...s, newName: '', ver: s.ver + 1 })); }}
                   className="bubble-btn success" style={{ ...btnStyle, padding: '10px 18px' }}>Add</button>
               </div>
             </div>
