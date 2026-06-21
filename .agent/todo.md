@@ -19,4 +19,4 @@
 - [ ] Hill: cap step spacing so many tiny blocks stay in a tidy zone.
 - [ ] Consider hiding the running total for pure mental-math mode.
 - [ ] Playtest all 24 stages + a full run (win + lose) for edge cases.
-- [ ] Code-split the 1.3MB bundle (dynamic import three/drei) if load time matters.
+- [x] Code-split the 1.3MB bundle (dynamic import three/drei): MathQuest3D, RunnerGame and a HeroCanvas wrapper are now `React.lazy` + `Suspense`; initial JS dropped from 1,424 kB → 296 kB (gzip 392 → 87 kB), three.js loads on demand.

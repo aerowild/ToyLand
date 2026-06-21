@@ -1,14 +1,26 @@
 // src/App.jsx - Main Dashboard and State Manager
-import React, { useEffect, useRef, useReducer, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
-import MathQuest3D from './components/MathQuest3D';
-import Hero3D from './components/Hero3D';
-import RunnerGame from './components/RunnerGame';
+import React, { useEffect, useRef, useReducer, useState, lazy, Suspense } from 'react';
 import { CookieMonsterGame, SeeSawGame, AlligatorGame } from './components/MiniGames';
 import { STAGE_NAMES, FEATURE_NAMES, EVOLUTION_TITLES, getStageParams } from './utils/mathQuestState';
 import { playSound, setSoundEnabled, isSoundEnabled } from './utils/sound';
 import { ensureProfile, listProfiles, getActiveProfile, getActiveProfileId, createProfile, setActiveProfile, deleteProfile, getStats } from './utils/profileStore';
 import './App.css';
+
+// Heavy 3D views are code-split so three.js / @react-three/fiber load on demand,
+// not in the initial bundle. They share one three.js chunk once any is loaded.
+const MathQuest3D = lazy(() => import('./components/MathQuest3D'));
+const RunnerGame = lazy(() => import('./components/RunnerGame'));
+const HeroCanvas = lazy(() => import('./components/HeroCanvas'));
+
+// Fallback shown while a 3D chunk downloads.
+function GameLoader() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '320px', gap: '14px', fontFamily: "'Fredoka', sans-serif" }}>
+      <div style={{ fontSize: '3rem', animation: 'bounce 0.9s ease-in-out infinite' }}>🚀</div>
+      <div style={{ fontWeight: 800, color: '#0369a1', fontSize: '1.1rem' }}>Loading…</div>
+    </div>
+  );
+}
 
 // --- Error boundary: prevents a 3D/runtime error from white-screening the whole app ---
 class ErrorBoundary extends React.Component {
@@ -786,6 +798,7 @@ export default function App() {
 
       {/* Main content */}
       <main style={{ flexGrow: 1, position: 'relative' }}>
+        <Suspense fallback={<GameLoader />}>
 
         {/* ===== DASHBOARD ===== */}
         {activeView === 'dashboard' && (
@@ -1123,11 +1136,7 @@ export default function App() {
               {/* 3D Character */}
               <div style={{ flex: 1, minWidth: '280px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'sticky', top: '20px' }}>
                 <div style={{ width: '100%', height: '320px', background: '#f8fafc', border: '4px solid #cbd5e1', borderRadius: '24px', overflow: 'hidden', position: 'relative', boxShadow: 'inset 0 4px 10px rgba(0,0,0,0.05)' }}>
-                  <Canvas camera={{ position: [0, 1.2, 3], fov: 38 }}>
-                    <ambientLight intensity={0.9} />
-                    <directionalLight position={[5, 5, 5]} intensity={1.2} />
-                    <Hero3D features={equippedFeatures} isCelebrating={true} scale={0.95} position={[0, -0.65, 0]} petColor={petColor} petAccessory={petAccessory} />
-                  </Canvas>
+                  <HeroCanvas features={equippedFeatures} petColor={petColor} petAccessory={petAccessory} />
                 </div>
                 <div style={{ fontWeight: '900', fontSize: '1.4rem', color: '#1e293b', marginTop: '12px' }}>
                   {getHeroTitle(heroLevel)} (Lvl {heroLevel})
@@ -1426,11 +1435,7 @@ export default function App() {
               <div style={{ flex: 1, minWidth: '280px', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'sticky', top: '20px' }}>
                 <div style={{ width: '100%', height: '320px', background: '#f8fafc', border: '4px solid #a855f7', borderRadius: '24px', overflow: 'hidden', position: 'relative', boxShadow: '0 8px 20px rgba(168,85,247,0.15)' }}>
                   <div style={{ position: 'absolute', top: '12px', left: '12px', background: '#a855f7', color: 'white', padding: '4px 10px', borderRadius: '99px', fontSize: '0.75rem', fontWeight: '800', zIndex: 10 }}>🔮 Preview</div>
-                  <Canvas camera={{ position: [0, 1.2, 3], fov: 38 }}>
-                    <ambientLight intensity={0.9} />
-                    <directionalLight position={[5, 5, 5]} intensity={1.2} />
-                    <Hero3D features={getPreviewFeatures()} isCelebrating={true} scale={0.95} position={[0, -0.65, 0]} petColor={petColor} petAccessory={petAccessory} />
-                  </Canvas>
+                  <HeroCanvas features={getPreviewFeatures()} petColor={petColor} petAccessory={petAccessory} />
                 </div>
                 <div style={{ width: '100%', marginTop: '15px', padding: '12px', background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '16px' }}>
                   <div style={{ fontWeight: '900', fontSize: '1.2rem', color: '#1e293b', textAlign: 'center' }}>{getHeroTitle(heroLevel)} (Lvl {heroLevel})</div>
@@ -1518,6 +1523,7 @@ export default function App() {
             </div>
           </div>
         )}
+        </Suspense>
       </main>
 
       {/* ===== DAILY REWARD MODAL ===== */}

@@ -6,5 +6,10 @@ export default defineConfig({
   server: {
     port: 8888,
     open: true
+  },
+  build: {
+    // three.js is intentionally code-split into an on-demand chunk (loaded only when a
+    // 3D view opens), so the default 500 kB warning for that deferred chunk is expected.
+    chunkSizeWarningLimit: 1000
   }
 })

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-06-21 (bundle code-split)
+- Code-split the heavy 3D views with `React.lazy` + `Suspense`: `MathQuest3D`, `RunnerGame`, and a new `HeroCanvas` wrapper (which holds the `<Canvas>` + `Hero3D` preview, replacing two inline copies in App.jsx). three.js / @react-three/fiber now load on demand when a 3D view opens, shared across all three via one chunk.
+- Initial JS bundle dropped from **1,424 kB → 296 kB** (gzip 392 → 87 kB); three.js moved into a deferred ~908 kB chunk. A single Suspense boundary wraps `<main>` content (header/nav stay visible) with a kid-friendly 🚀 loader. Raised `chunkSizeWarningLimit` to 1000 in `vite.config.js` since the deferred three chunk is expected; build is warning-free.
+
 ## 2026-06-21 (decomposition-tree tutor — finish + fix)
 - Reworked the two-digit add lesson into an explicit **decomposition tree** (e.g. 17 + 7): the root branches into tens & ones (17 → 10 and 7), the ones are **circled and flashed** while the voice narrates (7 + 7 = 14), then the parts combine into the answer 24 — each step spoken as it animates.
 - Added the **explicit tens-digit combine step** when the ones cross ten: individual digits are now rendered separately so the lesson rings the "1" in 10 and the "1" in 14 → "one plus one makes two tens, that's twenty", then rings the leftover 4 and the answer's digits → "twenty and four more makes twenty-four". Generalizes to carries (28+5→33) and two-digit+two-digit (17+18→35, rings all three tens digits); a no-carry case (23+5) keeps the simple single combine frame.
