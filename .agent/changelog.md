@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-06-21 (decomposition-tree tutor — finish + fix)
+- Reworked the two-digit add lesson into an explicit **decomposition tree** (e.g. 17 + 7): the root branches into tens & ones (17 → 10 and 7), the ones are **circled and flashed** while the voice narrates (7 + 7 = 14), then the parts combine into the answer 24 — each step spoken as it animates.
+- Added the **explicit tens-digit combine step** when the ones cross ten: individual digits are now rendered separately so the lesson rings the "1" in 10 and the "1" in 14 → "one plus one makes two tens, that's twenty", then rings the leftover 4 and the answer's digits → "twenty and four more makes twenty-four". Generalizes to carries (28+5→33) and two-digit+two-digit (17+18→35, rings all three tens digits); a no-carry case (23+5) keeps the simple single combine frame.
+- Fixed the break left by the prior (interrupted) session: `MathTutor.jsx` referenced CSS classes `tutor-flash` and `tutor-circle` that were never defined, so the flashing/circling never animated. Added the missing keyframes to `App.css` (glow-pulse flash on nodes; fade-in + marching-ants + breathing stroke on the selection rings, reused for the per-digit rings).
+- Replaced the `planRef.current`-during-render anti-pattern with a lazy `useState` initializer (removed 17 react-hooks/refs lint errors; verified clean production build).
+
 ## 2026-06-20 (per-profile progress)
 - Fixed profile switching: ALL game state (stars, hero level/XP, current stage, unlocked/equipped gear, achievements, purchased items, quests, pet, login streak) is now stored PER PROFILE under a `toy_land_<profileId>_*` namespace. Switching/creating/deleting a profile reloads that profile's full state (RELOAD action); new profiles start fresh; existing progress migrates once to the first profile.
 
