@@ -114,3 +114,29 @@ NOTE TO AGENT: This file is organized from oldest plans at the top to the latest
 - Fail animation: water stages (bridge/hill/sub_bridge) drop the hero in with a crocodile chomp/smirk; flat stages cheer/stumble in place. Fixed stage 5→6 transition (no walking into empty space).
 - Added AGENT.md (concise) + CLAUDE.md (`@AGENT.md`).
 
+
+
+## 2026-07-18: Product review + roadmap (owner decisions locked)
+
+### Owner decisions
+- **Target age 6–8** (child entering Grade 2, then 3). SFUSD / California → follow **CA Common Core** grades 1–3.
+- **Add/sub mastery FIRST, then multiplication, then division.**
+- Approved persisting this plan and starting Phase 0.
+
+### Verified state (2026-07-18)
+- Production build passes (296 kB initial after code-split; three.js in a deferred chunk).
+- Headless Playwright playtest of all 6 nav views: **0 console errors, 0 page errors**. Warnings benign (THREE deprecations, software-WebGL fallback). Run Game + My Hero 3D render; **3D Math Quest canvas rendered black in headless** (software WebGL) — verify vs GPU Chrome (Phase 0b).
+- Fixed this session: tutor flash/circle CSS (was undefined → silent break), tutor digit-combine step (17+7 rings the tens), **checkpoint black screen** (was two live WebGL contexts → now single context), **tutor voice silent on 2nd+ lesson** (Chrome speech wedge → `resume()`), bundle code-split.
+
+### Findings (grounded in code)
+1. **3D wrong-answer feedback reveals the exact gap** (`checkAnswer`: "Need 3 more!") → puzzles solvable without math. Highest-priority pedagogy fix.
+2. **Random clicking can solve accumulation puzzles** (bridge/hill/electricity) — no commitment/attempt limit.
+3. **Adaptive engine wired only to the Runner**; the 24 3D stages are static and don't drive mastery/spaced repetition.
+4. **Skill ladder = 8 add/sub only** — no mult/div/place-value; intervals are minute-scale, not day-scale.
+5. **Runner distractors are `answer ± random`** — should be misconception-based (the errors kids actually make). (Runner drill itself is intentional/keep.)
+
+### Phased plan
+- **Phase 0 — Stabilize & verify.** (0a) Vitest math-logic tests: every stage target reachable from its clicks; every runner problem's answer ∈ choices and arithmetically correct; fraction/clock targets consistent. (0b) Headless playtest across 24 stages + full run (win/lose/checkpoint); fix glitches; resolve the 3D-Quest black-canvas question.
+- **Phase 1 — Anti-guessing & policing.** Directional non-numeric 3D feedback + capped-attempts tutor (remove exact-gap reveal); constrain random-click wins; misconception-based runner distractors; timing fairness.
+- **Phase 2 — Whole-app self-evolving loop.** Route 3D stage results through `recordPuzzleResult` (map stage type → skill); extend ladder to place-value → multiplication → division; day-scale spaced repetition; adaptive stage selection instead of fixed 1–24.
+- **Phase 3 — Age-fit & "doesn't feel like math."** Voice-first / reading-optional flows; lean into story/disguise so bare equations appear only in the intentional Runner drill.

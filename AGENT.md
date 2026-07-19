@@ -1,6 +1,13 @@
 # Math Quest — Agent Guide
 
-3D math game for 7-year-olds (Grade 1 & 2). React + Vite + Three.js (react-three-fiber) + GSAP.
+3D math game for **ages 6–8 (Grade 1 → 2 → 3)**. React + Vite + Three.js (react-three-fiber) + GSAP.
+
+## Product goal & hard constraints (read first)
+- **Audience:** one child, currently entering Grade 2 (SFUSD / California). Scope follows **CA Common Core** (grades 1–3). Reading is OK but keep it light and voice-supported.
+- **Curriculum ladder (CA CCSS):** G1 add/sub within 20 (fluent within 10), place value tens/ones, time hour/half, halves/fourths → G2 add/sub within 100 fluent (within 1000 w/ strategies), **arrays/repeated addition = multiplication foundation**, place value to 1000, money, time to 5 min, thirds → G3 **multiply/divide within 100**, fractions as numbers on a number line + equivalence, area as multiplication, time to minute.
+- **Sequencing decision (owner):** master **add/sub first, then multiplication, then division.**
+- **Non-negotiables:** (1) glitch-free; (2) no math-logic errors; (3) puzzles must NOT be solvable by random clicking or blind guessing; (4) the child should not feel like they're "doing math" (disguise it as play).
+- **Two learning layers, by design:** the **Runner** timed multiple-choice puzzles are the *mental-math fluency drill* (recall 8+9 fast, with the step-wise `MathTutor` on a miss) — keep them, but QA ("police") them. The **3D Math Quest** stages are the *conceptual, disguised* puzzles — these are where "not solvable by guessing" matters most.
 
 ## Run
 ```bash
@@ -8,6 +15,12 @@ npm install
 npm run dev      # http://localhost:8888 (port set in vite.config.js)
 npm run build    # verify after every change
 ```
+
+## Playtest (headless browser — works in this WSL env)
+- `playwright` + `vitest` are devDependencies. Chromium headless shell is installed under `~/.cache/ms-playwright`.
+- The dev server is reachable from WSL at `http://localhost:8888` (returns 200).
+- `scratch/playtest.mjs` (gitignored) loads the app, dismisses the daily "Star Chest" modal ("Maybe Later"), navigates all nav views, captures console + page errors, and screenshots to `scratch/shots/`. Run: `node scratch/playtest.mjs`. View shots with the image reader.
+- Caveats: headless uses **software WebGL** (no GPU) so perf warnings + occasional black 3D frames are environment artifacts, not necessarily app bugs; emoji render as tofu boxes. Always sanity-check a suspected 3D bug against real Chrome.
 
 ## Architecture
 - `src/App.jsx` — dashboard + global state (`useReducer`). Views: dashboard, mathquest3d, sandbox, classic-labs, stats, shop3d, graduation, mini-*. localStorage keys use `toy_land_` prefix. Admin password: `12345`.
@@ -17,7 +30,8 @@ npm run build    # verify after every change
 - `src/components/MiniGames.jsx` — Cookie/SeeSaw/Alligator mini-games.
 - `src/components/MathTutor.jsx` — animated, voiced "how to solve it" mini-lesson for a missed add/subtract problem. Picks a proven strategy (count-on / make-a-ten / count-up / place-value), renders a number line / ten-frames / place-value visual, narrates each step, skippable. Used by the runner `QuizModal` (auto on timed fail; "Show me how" button on non-timed).
 - `src/utils/mathQuestState.js` — 24 static stage configs (`getStageParams`), `FEATURE_NAMES`, `EVOLUTION_TITLES`, hints, praise, `calculateStars`.
-- `src/utils/profileStore.js` — kid profiles + adaptive arithmetic engine (localStorage `toy_land_profiles_v1`). `SKILLS` ladder (8 add/sub), `getAdaptiveProblem(level)` (spaced repetition: repeat failing skills, relax with mastered, introduce harder slowly), `recordPuzzleResult(skillId, ok, ms)`, `getStats()` for the parent report, `ensureProfile/createProfile/setActiveProfile/listProfiles/getActiveProfile`.
+- `src/utils/profileStore.js` — kid profiles + adaptive arithmetic engine (localStorage `toy_land_profiles_v1`). `SKILLS` ladder (8 add/sub only), `getAdaptiveProblem(level)` (spaced repetition: repeat failing skills, relax with mastered, introduce harder slowly), `recordPuzzleResult(skillId, ok, ms)`, `getStats()` for the parent report, `ensureProfile/createProfile/setActiveProfile/listProfiles/getActiveProfile`.
+  - **CAVEAT (known gap):** the adaptive engine is wired **only** to `RunnerGame`. The 24-stage 3D Math Quest is static and does NOT feed mastery/spaced-repetition. Ladder has **no multiplication/division/place-value** yet. Spaced-repetition intervals are minute-scale (session-local), not day-scale. See Phase 2 in `.agent/todo.md`.
 - `src/utils/sound.js` — synth SFX (`playSound`: click, pop, sad, whoosh, chime, coin, buzz, crash, powerup) plus: `playCrash(cause)`, `playPowerup(power)`, `playCoinPitch()`, `playTick(urgent)`, `speakPedestrian(kind)` (browser speech, kid-safe only), `startBackgroundMusic/stopBackgroundMusic` (runner) and `startCalmMusic/stopCalmMusic` (math stages).
 - `App.jsx` wraps the runner in an `ErrorBoundary` (shows the error + Try Again/Home instead of white-screening); both 3D Canvases guard `webglcontextlost`.
 - `public/legacy-vanilla/` — 14 classic 2D games loaded via iframe (`?game=labX`).
@@ -25,7 +39,7 @@ npm run build    # verify after every change
 ## Rules
 - All stage `clicks` are STATIC and the target must be reachable; never randomize.
 - Themes by tier: stages 1–8 forest, 9–16 lava, 17–24 space (`getThemeForStage`).
-- Keep gameplay/feedback non-revealing (don't tell the child the remaining amount).
+- Keep gameplay/feedback non-revealing. NOTE (known bug to fix in Phase 1): `MathQuest3D.checkAnswer` currently DOES reveal the exact gap on a wrong answer ("Need 3 more!", "Cut 6 more") — this lets a child converge without doing the math and violates constraint #3. Change to directional, non-numeric feedback + a capped-attempts tutor.
 - Water/fall + crocodile only on `bridge/hill/sub_bridge`; other stages cheer/stumble in place.
 - All audio is original synth (no copyrighted music); spoken pedestrian lines are kid-safe only (no profanity — audience is 7-year-olds).
 - Runner perf: keep static scenery in the memoized `StaticWorld` (ref-scrolled) and avoid per-frame React re-renders; never reference Hero3D-only effect components inside `RunnerGame`.

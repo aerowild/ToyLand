@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-18 (product review, playtest tooling, checkpoint/voice fixes)
+- Fixed **checkpoint black screen**: the runner kept its `<Canvas>` mounted while the checkpoint `MathQuest3D` mounted a second `<Canvas>` — two live WebGL contexts, so the browser dropped one and showed the dark overlay. Now the runner Canvas unmounts during `phase === 'checkpoint'` (single context; rebuilt from engine refs on return).
+- Fixed **tutor voice going silent on the 2nd+ lesson**: Chrome's speechSynthesis wedges after repeated `cancel()`; added `resume()` before each utterance and in `play()`.
+- Added **headless playtest capability**: `playwright` + `vitest` devDeps, Chromium shell, `scratch/playtest.mjs` harness (dismisses daily modal, walks all views, captures console/page errors + screenshots). Verified 0 errors across all 6 nav views.
+- **Product review + roadmap** recorded (owner decisions: age 6–8, add/sub→mult→div, CA Common Core). Updated `AGENT.md` (product goal/constraints, adaptive-engine caveat, feedback-reveal bug, playtest guide), `.agent/plan.md` (phased plan), `.agent/todo.md` (Phase 0–3). Key findings: 3D feedback reveals the exact gap; accumulation puzzles guessable; adaptive engine only wired to the runner; ladder lacks mult/div.
+
 ## 2026-06-21 (bundle code-split)
 - Code-split the heavy 3D views with `React.lazy` + `Suspense`: `MathQuest3D`, `RunnerGame`, and a new `HeroCanvas` wrapper (which holds the `<Canvas>` + `Hero3D` preview, replacing two inline copies in App.jsx). three.js / @react-three/fiber now load on demand when a 3D view opens, shared across all three via one chunk.
 - Initial JS bundle dropped from **1,424 kB → 296 kB** (gzip 392 → 87 kB); three.js moved into a deferred ~908 kB chunk. A single Suspense boundary wraps `<main>` content (header/nav stay visible) with a kid-friendly 🚀 loader. Raised `chunkSizeWarningLimit` to 1000 in `vite.config.js` since the deferred three chunk is expected; build is warning-free.

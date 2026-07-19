@@ -1,22 +1,35 @@
 # Todo List
 
-## Done
-- [x] Static 2nd-grade stage configs (8 types, reachable targets, 3 difficulty tiers).
-- [x] `useReducer` App rewrite, localStorage helper, kid-friendly UI, 48px targets.
-- [x] Cute mascot robot + all 24 gear items name-matched, placed, recognizable.
-- [x] Non-revealing feedback (child must think).
-- [x] Fix electricity stage (value accumulation) + pattern stage crash (sequence prop).
-- [x] Hill: smooth glide + auto-bridge (no gap, no jerky jump).
-- [x] Sub_bridge: left-anchored log spans gap exactly (no air-walking).
-- [x] Stage-appropriate win/lose animations + crocodile chomp; fix 5→6 transition.
-- [x] AGENT.md + CLAUDE.md; vite port 8888.
-- [x] Endless runner (Teleporter Run): lanes, jump/duck, coins, varied moving obstacles, power-ups, teleporter quizzes, checkpoints (cross the 8 levels) + countdown + respawn twist.
-- [x] Runner perf fix (memoized StaticWorld) + ErrorBoundary + WebGL context guards.
-- [x] Audio upgrade: run/calm music, coin pitch, cause crashes, power-up SFX, urgency ticks, spoken pedestrians.
-- [x] Git init + .gitignore + project.toml + remote origin.
+Owner decisions (2026-07-18): target age **6–8** (Grade 1→2→3, SFUSD/CA Common Core);
+**add/sub mastery first, then multiplication, then division**. See `.agent/plan.md` for the full roadmap.
 
-## Backlog / Watch
+## NOW — Phase 0: Stabilize & verify (before handing to the kid)
+- [ ] 0a. Vitest math-logic tests: every stage target reachable from its `clicks`; every `getAdaptiveProblem` result has answer ∈ choices and correct arithmetic; fraction/clock targets consistent.
+- [ ] 0b. Headless playtest across all 24 stages + a full run (win / lose / checkpoint); fix glitches.
+- [ ] 0b. Resolve the **3D Math Quest black-canvas** question (black in headless software-WebGL; confirm it renders in GPU Chrome, else fix scene/camera/background).
+
+## NEXT — Phase 1: Anti-guessing & policing (constraint #3)
+- [ ] Replace `MathQuest3D.checkAnswer` exact-gap reveal ("Need 3 more!") with directional, non-numeric feedback + capped-attempts → tutor.
+- [ ] Constrain accumulation puzzles so random clicking can't win (commit-a-plan / limited checks / no-op distractor blocks).
+- [ ] Runner distractors → misconception-based (the wrong answers kids actually pick), not `answer ± random`.
+- [ ] Verify runner timing/urgency is age-fair.
+
+## LATER — Phase 2: Whole-app self-evolving loop
+- [ ] Route 3D stage results through `recordPuzzleResult` (map stage type → skill) so the flagship game drives mastery too.
+- [ ] Extend `SKILLS` ladder: place-value → multiplication (arrays/repeated addition) → division. Keep add/sub mastery gating first.
+- [ ] Day-scale spaced repetition (skills resurface across sessions; mastered skills never fully drop).
+- [ ] Adaptive stage/puzzle selection instead of the fixed 1–24 sequence.
+
+## LATER — Phase 3: Age-fit & "doesn't feel like math"
+- [ ] Voice-first / reading-optional flows for a 6–8 yo.
+- [ ] Lean into story/disguise; keep bare equations only in the intentional Runner drill.
+
+## Watch / minor
 - [ ] Hill: cap step spacing so many tiny blocks stay in a tidy zone.
-- [ ] Consider hiding the running total for pure mental-math mode.
-- [ ] Playtest all 24 stages + a full run (win + lose) for edge cases.
-- [x] Code-split the 1.3MB bundle (dynamic import three/drei): MathQuest3D, RunnerGame and a HeroCanvas wrapper are now `React.lazy` + `Suspense`; initial JS dropped from 1,424 kB → 296 kB (gzip 392 → 87 kB), three.js loads on demand.
+
+## Done (recent)
+- [x] Fix checkpoint black screen (single WebGL context) + tutor voice `resume()` (34eb952).
+- [x] Decomposition-tree tutor: flash/circle CSS + explicit tens-digit combine step.
+- [x] Code-split bundle (three.js deferred): initial JS 1,424 kB → 296 kB.
+- [x] Per-profile game state; adaptive engine + parent report; endless runner; audio upgrade.
+- [x] 24 static stage configs (8 types); cute mascot + 24 gear; win/lose animations; git + remote.
