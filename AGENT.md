@@ -50,3 +50,27 @@ npm run build    # verify after every change
 - `plan.md` — append-only plan log (never trim).
 - `todo.md` — current prioritized tasks.
 - `changelog.md` — short per-change notes.
+- `llm_bench_results.md` — standardized local-LLM benchmark results (see below).
+
+## Local LLM offload (optional, via MCP)
+The owner runs **LM Studio** on the Windows host (RTX 4090 + 3090, 192GB RAM, i9-13900K), exposed to
+the agent through an MCP bridge script at `/home/katiyar/software/mcp/local_bridge.py` (tool
+`query_local_model(prompt)`), which proxies to the OpenAI-compatible endpoint.
+- **Endpoint:** `http://<wsl-default-gateway>:1234/v1` (the Windows host from WSL; get the IP with
+  `ip route | awk '/default/{print $3}'` — it can change between reboots). List models: `curl http://<ip>:1234/v1/models`.
+- **The MCP tool only appears after a fresh `kiro-cli chat` start** (MCP loads at startup). Check with `/mcp`.
+  If you need it mid-session and it's absent, call the endpoint directly via `shell`+`curl` (same result).
+- **WHEN TO USE IT:** offline/**batch content generation** where quality matters but latency doesn't —
+  misconception-distractor banks, problem sets, narration/hint drafts, test fixtures. It's local ("free"
+  tokens), so it takes bulk generation off the cloud. Generate small batches per call; always keep the
+  human/agent in the loop to **verify** output (never ship generated math unchecked — run `npm test`).
+- **WHEN NOT TO USE IT:** anything latency-sensitive, in the kid's real-time game loop, or high-volume-fast.
+- **IF OFFLINE / unreachable:** `curl` times out or the tool errors → **do the work yourself** (don't block).
+  The local LLM is a cost optimization, never a dependency. Nothing in the shipped app depends on it.
+- **Known model caveat (2026-07-18):** the loaded `qwen/qwen3.6-35b-a3b` is a **reasoning model** —
+  thinking CANNOT be disabled (`/no_think`, `enable_thinking:false` ignored) and ~96% of output tokens are
+  hidden reasoning (`reasoning_content`); a trivial one-liner still costs ~14s. Correctness is high (4/4 on
+  the suite). For bulk work a **non-reasoning instruct model** (e.g. Qwen2.5-32B-Instruct / Qwen2.5-Coder-32B)
+  is far more efficient. Always set `max_tokens` high for reasoning models or `content` returns empty.
+- **Benchmark before trusting a new model:** `node scripts/llm_bench.mjs <model-id>` runs a fixed suite and
+  appends a comparable row to `.agent/llm_bench_results.md`.

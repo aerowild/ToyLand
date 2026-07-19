@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-18 (local-LLM offload: benchmark + docs)
+- Tested the owner's LM Studio local model (`qwen/qwen3.6-35b-a3b`) via its OpenAI endpoint. Works, correctness high (4/4 on the suite), but it's a **reasoning model with thinking that can't be disabled** — ~96% of output tokens are hidden reasoning; even a one-line hint costs ~14s. Best for offline batch generation, not latency-sensitive work.
+- Added `scripts/llm_bench.mjs` (standardized suite: distractors, sub/add batches, narration) + `.agent/llm_bench_results.md` (tracked results log) so future models compare apples-to-apples. Baseline row recorded.
+- Documented the local-LLM offload in `AGENT.md`: endpoint discovery, when to use / when not, offline fallback (do the work yourself; never a dependency), the reasoning-tax caveat, and how to benchmark.
+
 ## 2026-07-18 (product review, playtest tooling, checkpoint/voice fixes)
 - Fixed **checkpoint black screen**: the runner kept its `<Canvas>` mounted while the checkpoint `MathQuest3D` mounted a second `<Canvas>` — two live WebGL contexts, so the browser dropped one and showed the dark overlay. Now the runner Canvas unmounts during `phase === 'checkpoint'` (single context; rebuilt from engine refs on return).
 - Fixed **tutor voice going silent on the 2nd+ lesson**: Chrome's speechSynthesis wedges after repeated `cancel()`; added `resume()` before each utterance and in `play()`.
