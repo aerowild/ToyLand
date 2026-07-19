@@ -2149,6 +2149,12 @@ export default function MathQuest3D({
     const [poppedBonusBalloons, setPoppedBonusBalloons] = useState([]);
     const [bonusStars, setBonusStars] = useState(0);
 
+    // WebGL context-loss self-heal: if the GL context is lost (e.g. StrictMode double-mount
+    // churn in dev, or a driver hiccup), remount the <Canvas> with a fresh key instead of
+    // leaving a permanently black scene. Capped so a persistent failure can't loop forever.
+    const [glKey, setGlKey] = useState(0);
+    const glLossCount = useRef(0);
+
     const [placedBlocks, setPlacedBlocks] = useState([]);
     const [currentValue, setCurrentValue] = useState(puzzleType === 'sub_bridge' ? start : 0);
     const [feedback, setFeedback] = useState({ text: '', type: '' });
@@ -3109,8 +3115,17 @@ export default function MathQuest3D({
 
             {/* --- GAME FRAME (3D canvas + HUD overlays) --- */}
             <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
-            <Canvas shadows camera={{ position: [0, 4.2, 10], fov: 46 }}
-                onCreated={({ gl }) => { gl.domElement.addEventListener('webglcontextlost', (ev) => ev.preventDefault(), false); }}>
+            <Canvas key={glKey} shadows camera={{ position: [0, 4.2, 10], fov: 46 }}
+                onCreated={({ gl }) => {
+                    gl.domElement.addEventListener('webglcontextlost', (ev) => {
+                        ev.preventDefault(); // allow restoration
+                        // Self-heal: remount the Canvas with a fresh context (capped).
+                        if (glLossCount.current < 3) {
+                            glLossCount.current += 1;
+                            setTimeout(() => setGlKey((k) => k + 1), 250);
+                        }
+                    }, false);
+                }}>
                 <Environment puzzleType={puzzleType} stageNum={stageNum} theme={selectedTheme} />
                 <CameraRig puzzleType={puzzleType} target={target} stairTotalHeight={3.0} />
                 
