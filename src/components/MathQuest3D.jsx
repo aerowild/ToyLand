@@ -1,11 +1,11 @@
 // src/components/MathQuest3D.jsx - Core React Three Fiber Math Game Component
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Line, Stars, Cloud, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import Hero3D from './Hero3D';
-import { getStageParams, COLORS, FEATURE_NAMES, getRandomPraise, getHint, calculateStars } from '../utils/mathQuestState';
+import { getStageParams, generateStageParams, COLORS, FEATURE_NAMES, getRandomPraise, getHint, calculateStars } from '../utils/mathQuestState';
 import { playSound, playStreakComboSound, startCalmMusic, stopCalmMusic } from '../utils/sound';
 
 export function formatTime(val) {
@@ -2121,6 +2121,11 @@ export default function MathQuest3D({
         }
     }
 
+    // Randomized (non-fixed) numbers for the current stage — generated ONCE per stage
+    // (stable across re-renders) so the target doesn't shift mid-play. New numbers on
+    // each stage change / remount (checkpoints remount via key).
+    const randomizedParams = useMemo(() => generateStageParams(stageNum), [stageNum]);
+
     const params = sandboxMode 
         ? {
             type: sandboxType,
@@ -2140,7 +2145,7 @@ export default function MathQuest3D({
                       ].filter(c => c.w * c.h <= targetW * targetH)
                     : [1, 2, 3, 5, -1, -2].filter(c => Math.abs(c) < sandboxTarget))
           }
-        : getStageParams(stageNum);
+        : randomizedParams;
 
     const { type: puzzleType, target, start, clicks, pieces, sequence } = params;
     const stairTotalHeight = 3.0;

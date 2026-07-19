@@ -141,3 +141,96 @@ export function calculateXP(stageNum, attempts) {
 export function getEvolutionLevel(totalStages) {
   return Math.min(24, totalStages);
 }
+
+/* ============================================================================
+ * RANDOMIZED (non-fixed) puzzle numbers.
+ * getStageParams() stays deterministic (used by tests + as a safe fallback).
+ * generateStageParams() returns a fresh, VALID variant of the SAME puzzle type
+ * and difficulty tier each call — different numbers every play, but the target
+ * is always reachable from the offered clicks (validated below), and never a
+ * single-tap giveaway.
+ * ==========================================================================*/
+function _rint(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
+function _pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+function _shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+// Can `target` (non-negative int) be summed from positive `steps` (with repetition)?
+export function canReachTarget(target, steps) {
+  const t = Math.round(target);
+  const pos = steps.map((s) => Math.round(s)).filter((s) => s > 0);
+  if (t === 0) return true;
+  if (!pos.length) return false;
+  const reach = new Array(t + 1).fill(false); reach[0] = true;
+  for (let v = 1; v <= t; v++) for (const s of pos) if (v - s >= 0 && reach[v - s]) { reach[v] = true; break; }
+  return reach[t];
+}
+
+const _SHAPE_IDX = { sphere: 1, box: 2, cylinder: 3 };
+
+// A set of small positive step values (+ optional negative "undo") that can sum to target,
+// with no single step equal to target (so it's not a one-tap answer). Returns null on failure.
+function _additiveClicks(target, tier) {
+  const pool = tier === 1 ? [1, 2, 3, 4, 5] : tier === 2 ? [2, 3, 4, 5, 6, 7, 8] : [3, 4, 5, 8, 10, 12];
+  for (let tries = 0; tries < 40; tries++) {
+    const vals = _shuffle(pool.filter((v) => v < target)).slice(0, _rint(3, 4));
+    if (vals.length < 2) continue;
+    if (Math.random() < 0.5) vals.push(-_pick([1, 2, 3])); // an "undo/lift" option
+    if (!vals.includes(target) && canReachTarget(target, vals)) return vals;
+  }
+  return null;
+}
+
+export function generateStageParams(stageNum) {
+  const base = getStageParams(stageNum);
+  const idx = Math.max(1, Math.min(24, stageNum));
+  const tier = idx <= 8 ? 1 : idx <= 16 ? 2 : 3;
+  const type = base.type;
+
+  try {
+    if (type === 'bridge' || type === 'hill' || type === 'electricity') {
+      const [lo, hi] = tier === 1 ? [5, 12] : tier === 2 ? [13, 26] : [22, 42];
+      const target = _rint(lo, hi);
+      const clicks = _additiveClicks(target, tier);
+      if (clicks) return { ...base, target, clicks };
+    } else if (type === 'sub_bridge') {
+      const [slo, shi] = tier === 1 ? [8, 15] : tier === 2 ? [16, 28] : [28, 45];
+      const start = _rint(slo, shi);
+      const target = _rint(Math.max(1, Math.floor(start * 0.25)), Math.floor(start * 0.7));
+      const cuts = _additiveClicks(start - target, tier);
+      if (cuts && start > target) return { ...base, start, target, clicks: cuts.filter((c) => c > 0) };
+    } else if (type === 'area') {
+      const [wl, wh, hl, hh] = tier === 1 ? [2, 3, 2, 3] : tier === 2 ? [3, 4, 2, 4] : [4, 5, 3, 5];
+      const targetW = _rint(wl, wh), targetH = _rint(hl, hh), target = targetW * targetH;
+      // block palette that can tile the area; {1,1} guarantees reachability
+      const cand = [{ w: 1, h: 1 }, { w: 2, h: 1 }, { w: 1, h: 2 }, { w: 2, h: 2 }, { w: targetW, h: 1 }, { w: 1, h: targetH }, { w: Math.max(1, targetW - 1), h: 1 }]
+        .filter((c) => c.w <= targetW && c.h <= targetH);
+      const clicks = _shuffle(cand).slice(0, 4);
+      if (!clicks.some((c) => c.w === 1 && c.h === 1)) clicks.push({ w: 1, h: 1 });
+      if (canReachTarget(target, clicks.map((c) => c.w * c.h))) return { ...base, target, targetW, targetH, clicks };
+    } else if (type === 'clock') {
+      const hour = _rint(1, tier === 1 ? 6 : 11);
+      const frac = tier === 1 ? 0 : tier === 2 ? _pick([0, 0.5]) : _pick([0, 0.5, 0.25]);
+      const target = hour + frac;
+      const clicks = [1, 2, 3];
+      if (frac === 0.5) clicks.push(0.5);
+      if (frac === 0.25) clicks.push(0.5, 0.25);
+      return { ...base, target, clicks };
+    } else if (type === 'fraction') {
+      const pieces = tier === 1 ? _pick([2, 3, 4]) : tier === 2 ? _pick([4, 6]) : _pick([6, 8]);
+      const targetPieces = _rint(1, pieces - 1);
+      return { ...base, pieces, targetPieces, target: targetPieces / pieces, clicks: [1, 2, 3] };
+    } else if (type === 'pattern') {
+      const rule = tier === 1
+        ? _pick([['sphere', 'box'], ['box', 'sphere'], ['sphere', 'cylinder']])
+        : tier === 2
+          ? _pick([['sphere', 'sphere', 'box'], ['sphere', 'box', 'box'], ['cylinder', 'sphere', 'sphere']])
+          : _pick([['sphere', 'box', 'cylinder'], ['cylinder', 'box', 'sphere'], ['box', 'cylinder', 'sphere']]);
+      const reps = 2, seq = [];
+      for (let i = 0; i < reps; i++) seq.push(...rule);
+      seq.push(...rule.slice(0, Math.max(0, _rint(0, rule.length - 1)))); // partial tail
+      const next = rule[seq.length % rule.length];
+      return { ...base, sequence: seq, target: _SHAPE_IDX[next], clicks: [1, 2, 3] };
+    }
+  } catch (e) { /* fall through to base */ }
+  return base; // safe fallback: the deterministic (always-valid) config
+}

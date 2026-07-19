@@ -3,7 +3,7 @@
 //  (A) every 3D stage's target is reachable from its static clicks, and
 //  (B) every adaptive runner problem is arithmetically correct and well-formed.
 import { describe, it, expect } from 'vitest';
-import { getStageParams } from '../src/utils/mathQuestState.js';
+import { getStageParams, generateStageParams } from '../src/utils/mathQuestState.js';
 import { getAdaptiveProblem, SKILLS } from '../src/utils/profileStore.js';
 
 // Can we hit `target` (a non-negative integer) by summing `steps` with repetition?
@@ -20,36 +20,52 @@ function canReach(target, steps) {
   return reach[t];
 }
 
+// Assert a stage-params object is internally valid & solvable (works for both the
+// static configs and the randomized variants).
+function assertValidStage(p) {
+  expect(p).toBeTruthy();
+  if (p.type === 'bridge' || p.type === 'hill' || p.type === 'electricity') {
+    expect(canReach(p.target, p.clicks)).toBe(true);
+    expect(p.clicks).not.toContain(p.target); // not a one-tap giveaway
+  } else if (p.type === 'sub_bridge') {
+    expect(p.start).toBeGreaterThan(p.target);
+    expect(canReach(p.start - p.target, p.clicks)).toBe(true);
+  } else if (p.type === 'area') {
+    expect(p.target).toBe(p.targetW * p.targetH);
+    expect(canReach(p.target, p.clicks.map((c) => c.w * c.h))).toBe(true);
+    p.clicks.forEach((c) => { expect(c.w).toBeLessThanOrEqual(p.targetW); expect(c.h).toBeLessThanOrEqual(p.targetH); });
+  } else if (p.type === 'clock') {
+    expect(canReach(Math.round(p.target * 4), p.clicks.map((c) => Math.round(c * 4)))).toBe(true);
+  } else if (p.type === 'fraction') {
+    expect(canReach(p.targetPieces, p.clicks)).toBe(true);
+    expect(p.targetPieces).toBeGreaterThan(0);
+    expect(p.targetPieces).toBeLessThan(p.pieces);
+    expect(Math.abs(p.targetPieces / p.pieces - p.target)).toBeLessThan(0.01);
+  } else if (p.type === 'pattern') {
+    expect(p.sequence.length).toBeGreaterThan(0);
+    expect([1, 2, 3]).toContain(p.target);
+    expect(p.clicks).toContain(p.target);
+  } else {
+    throw new Error(`unknown puzzle type: ${p.type}`);
+  }
+}
+
 describe('3D stage math logic (getStageParams)', () => {
   for (let n = 1; n <= 24; n++) {
-    it(`stage ${n}: target reachable from clicks`, () => {
-      const p = getStageParams(n);
-      expect(p).toBeTruthy();
+    it(`stage ${n}: static target reachable from clicks`, () => {
+      assertValidStage(getStageParams(n));
+    });
+  }
+});
 
-      if (p.type === 'bridge' || p.type === 'hill' || p.type === 'electricity') {
-        expect(canReach(p.target, p.clicks)).toBe(true);
-      } else if (p.type === 'sub_bridge') {
-        // start - (sum of cuts) === target  →  need = start - target reachable from cuts
-        expect(p.start).toBeGreaterThan(p.target);
-        expect(canReach(p.start - p.target, p.clicks)).toBe(true);
-      } else if (p.type === 'area') {
-        // currentValue accumulates block areas; win when it equals target (= W*H)
-        expect(p.target).toBe(p.targetW * p.targetH);
-        const areas = p.clicks.map((c) => c.w * c.h);
-        expect(canReach(p.target, areas)).toBe(true);
-      } else if (p.type === 'clock') {
-        // additive hours incl. 0.5 / 0.25 → scale by 4 to stay integer
-        expect(canReach(p.target * 4, p.clicks.map((c) => c * 4))).toBe(true);
-      } else if (p.type === 'fraction') {
-        // color `targetPieces` of `pieces`; target fraction must match
-        expect(canReach(p.targetPieces, p.clicks)).toBe(true);
-        expect(Math.abs(p.targetPieces / p.pieces - p.target)).toBeLessThan(0.01);
-      } else if (p.type === 'pattern') {
-        expect(p.sequence.length).toBeGreaterThan(0);
-        expect([1, 2, 3]).toContain(p.target);         // next-shape index
-        expect(p.clicks).toContain(p.target);          // correct choice is offered
-      } else {
-        throw new Error(`unknown puzzle type: ${p.type}`);
+describe('3D stage RANDOMIZED variants (generateStageParams)', () => {
+  for (let n = 1; n <= 24; n++) {
+    it(`stage ${n}: 60 random variants all valid & same type`, () => {
+      const type = getStageParams(n).type;
+      for (let i = 0; i < 60; i++) {
+        const p = generateStageParams(n);
+        expect(p.type).toBe(type);   // type/difficulty preserved
+        assertValidStage(p);
       }
     });
   }
