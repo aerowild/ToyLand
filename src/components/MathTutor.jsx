@@ -250,6 +250,9 @@ export default function MathTutor({ a, op, b, answer, onDone }) {
     if (i >= plan.frames.length) { setFinished(true); return; }
     setStep(i);
     const say = plan.frames[i].say;
+    // Chrome/Safari can leave speechSynthesis in a "paused/wedged" state after repeated
+    // cancel() calls (e.g. the 2nd+ tutorial in a session goes silent). resume() unwedges it.
+    try { window.speechSynthesis.resume(); } catch (e) { /* ignore */ }
     speak(say, { female: true, rate: 0.9, pitch: 1.05, volume: 1, clear: true, minGap: 0 });
     const dur = Math.max(2900, 1100 + say.length * 80);
     timers.current.push(setTimeout(() => runFrom(i + 1), dur));
@@ -257,10 +260,10 @@ export default function MathTutor({ a, op, b, answer, onDone }) {
 
   const play = () => {
     clearTimers();
-    try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ }
+    try { window.speechSynthesis.cancel(); window.speechSynthesis.resume(); } catch (e) { /* ignore */ }
     primeSpeech();
     setFinished(false);
-    timers.current.push(setTimeout(() => runFrom(0), 250));
+    timers.current.push(setTimeout(() => runFrom(0), 300));
   };
 
   useEffect(() => { play(); return clearTimers; /* eslint-disable-next-line */ }, []);

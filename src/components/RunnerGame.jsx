@@ -858,18 +858,21 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', background: '#0b1026', overflow: 'hidden' }}>
-      {/* Runner canvas stays mounted the whole session (no context churn);
-          paused (frameloop=never) while the checkpoint level is on top. */}
-      <Canvas
-        shadows
-        frameloop={phase === 'checkpoint' ? 'never' : 'always'}
-        camera={{ position: [0, 3.2, 6.5], fov: 60 }}
-        onCreated={({ gl }) => {
-          gl.domElement.addEventListener('webglcontextlost', (ev) => ev.preventDefault(), false);
-        }}
-      >
-        <RunnerScene engine={engine} features={features} petColor={petColor} petAccessory={petAccessory} />
-      </Canvas>
+      {/* Runner canvas. Unmounted during the checkpoint level so only ONE WebGL
+          context is ever live at a time (two simultaneous contexts can make the
+          browser drop one → black screen). It remounts (rebuilt from engine refs)
+          when the checkpoint is cleared. */}
+      {phase !== 'checkpoint' && (
+        <Canvas
+          shadows
+          camera={{ position: [0, 3.2, 6.5], fov: 60 }}
+          onCreated={({ gl }) => {
+            gl.domElement.addEventListener('webglcontextlost', (ev) => ev.preventDefault(), false);
+          }}
+        >
+          <RunnerScene engine={engine} features={features} petColor={petColor} petAccessory={petAccessory} />
+        </Canvas>
+      )}
 
       {/* CHECKPOINT: cross one of the 8 unique math levels (overlay on top) */}
       {phase === 'checkpoint' && (
