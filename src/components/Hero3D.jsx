@@ -1,7 +1,7 @@
 // src/components/Hero3D.jsx - Cute orange/silver mascot robot with animated gear
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { RoundedBox } from '@react-three/drei';
+import { RoundedBox, Outlines } from '@react-three/drei';
 import * as THREE from 'three';
 
 const damp = THREE.MathUtils.damp;
@@ -218,12 +218,13 @@ export default function Hero3D({
   const hasPandaPet    = features.includes('pet_panda');
   const hasRobotPet    = features.includes('pet_robot');
 
-  // Palette — orange body + silver metal + cyan accents (mascot look)
-  const orange = hasGoldArmor ? '#fbbf24' : hasSpaceSuit ? '#e2e8f0' : '#f59e0b';
+  // Palette — vivid orange body + bright silver metal + cyan accents (glossy mascot look)
+  const orange = hasGoldArmor ? '#fbbf24' : hasSpaceSuit ? '#e2e8f0' : '#f97316';
   const orangeDark = hasGoldArmor ? '#d97706' : hasSpaceSuit ? '#cbd5e1' : '#ea580c';
-  const silver = '#cbd5e1';
+  const silver = '#e2e8f0';
   const silverDark = '#94a3b8';
   const cyan = '#22d3ee';
+  const OUTLINE = '#0b1220';
 
   const getPetColorHex = () =>
     petColor === 'red' ? '#ef4444' : petColor === 'green' ? '#22c55e' : petColor === 'gold' ? '#fbbf24' : '#3b82f6';
@@ -361,7 +362,7 @@ export default function Hero3D({
   const renderFoot = () => (
     <group>
       {/* boot body */}
-      <RoundedBox args={[0.24, 0.16, 0.22]} radius={0.07} smoothness={3} position={[0.03, 0, 0]} castShadow><meshStandardMaterial {...(hasHoverBoots ? Msilver : Morange)} /></RoundedBox>
+      <RoundedBox args={[0.24, 0.16, 0.22]} radius={0.07} smoothness={3} position={[0.03, 0, 0]} castShadow><meshStandardMaterial {...(hasHoverBoots ? Msilver : Morange)} /><Outlines thickness={0.025} color={OUTLINE} /></RoundedBox>
       {/* silver sole */}
       <RoundedBox args={[0.26, 0.06, 0.24]} radius={0.03} smoothness={3} position={[0.03, -0.09, 0]}><meshStandardMaterial {...MsilverDark} /></RoundedBox>
       {/* cyan accent */}
@@ -382,7 +383,7 @@ export default function Hero3D({
         {/* ===================== HEAD ===================== */}
         <group ref={headRef} position={[0, 1.14, 0]}>
           {/* silver helmet shell */}
-          <RoundedBox args={[0.52, 0.48, 0.48]} radius={0.18} smoothness={5} castShadow><meshStandardMaterial {...Msilver} /></RoundedBox>
+          <RoundedBox args={[0.52, 0.48, 0.48]} radius={0.18} smoothness={5} castShadow><meshStandardMaterial {...Msilver} /><Outlines thickness={0.03} color={OUTLINE} /></RoundedBox>
           {/* orange face plate */}
           <RoundedBox args={[0.12, 0.42, 0.44]} radius={0.12} smoothness={4} position={[0.2, -0.01, 0]}><meshStandardMaterial {...Morange} /></RoundedBox>
 
@@ -451,7 +452,7 @@ export default function Hero3D({
           {/* neck */}
           <mesh position={[0, 0.91, 0]}><cylinderGeometry args={[0.1, 0.12, 0.1, 12]} /><meshStandardMaterial {...MsilverDark} /></mesh>
           {/* orange torso */}
-          <RoundedBox args={[0.46, 0.52, 0.42]} radius={0.16} smoothness={5} position={[0, 0.6, 0]} castShadow><meshStandardMaterial {...Morange} /></RoundedBox>
+          <RoundedBox args={[0.46, 0.52, 0.42]} radius={0.16} smoothness={5} position={[0, 0.6, 0]} castShadow><meshStandardMaterial {...Morange} /><Outlines thickness={0.03} color={OUTLINE} /></RoundedBox>
 
           {/* silver chest panel with vents + cyan lights */}
           <RoundedBox args={[0.07, 0.34, 0.3]} radius={0.05} smoothness={3} position={[0.2, 0.56, 0]}><meshStandardMaterial {...Msilver} /></RoundedBox>
@@ -459,7 +460,7 @@ export default function Hero3D({
             <mesh key={i} position={[0.235, 0.5, z]}><boxGeometry args={[0.02, 0.12, 0.025]} /><meshStandardMaterial color="#475569" roughness={0.8} /></mesh>
           ))}
           {[0.08, -0.08].map((z, i) => (
-            <mesh key={i} position={[0.235, 0.68, z]}><sphereGeometry args={[0.022, 10, 10]} /><meshStandardMaterial color={cyan} emissive={cyan} emissiveIntensity={0.9} /></mesh>
+            <mesh key={i} position={[0.235, 0.68, z]}><sphereGeometry args={[0.026, 12, 12]} /><meshStandardMaterial color={cyan} emissive={cyan} emissiveIntensity={1.3} /></mesh>
           ))}
 
           {/* shoulder ball joints */}
