@@ -458,22 +458,46 @@ if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
 
 // Choose the most natural-sounding female English voice available.
 const FEMALE_HINTS = ['female', 'samantha', 'victoria', 'karen', 'moira', 'tessa', 'fiona', 'serena', 'allison', 'ava', 'susan', 'zira', 'hazel', 'aria', 'jenny', 'sonia', 'natasha', 'libby', 'michelle', 'amelie', 'kathy', 'google uk english female', 'google us english'];
+// Flat / robotic legacy voices to avoid when anything better exists.
+const ROBOTIC_HINTS = ['david', 'mark', 'zira', 'espeak', 'default', 'microsoft sam', 'pico', 'compact'];
+
+function scoreVoice(v, preferFemale) {
+    const n = (v.name || '').toLowerCase();
+    let score = 0;
+    if (n.includes('natural') || n.includes('neural')) score += 9; // neural = organic, not robotic
+    if (n.includes('google')) score += 5;
+    if (n.includes('online') || n.includes('premium') || n.includes('enhanced')) score += 4;
+    if (preferFemale && FEMALE_HINTS.some((f) => n.includes(f))) score += 6;
+    if (/^en-us/i.test(v.lang)) score += 2; else if (/^en/i.test(v.lang)) score += 1;
+    if (ROBOTIC_HINTS.some((r) => n.includes(r))) score -= 8; // push flat/robotic voices down
+    return score;
+}
+
 function pickFemaleVoice() {
     if (_femaleVoice !== undefined) return _femaleVoice;
     if (!_voices.length) loadVoices();
     let best = null, bestScore = -1;
-    _voices.forEach((v) => {
-        const n = (v.name || '').toLowerCase();
-        let score = 0;
-        if (FEMALE_HINTS.some((f) => n.includes(f))) score += 10;
-        if (n.includes('natural')) score += 6;       // prefer "Natural"/neural voices = organic
-        if (n.includes('google')) score += 4;
-        if (n.includes('online') || n.includes('premium') || n.includes('enhanced')) score += 3;
-        if (/^en-us/i.test(v.lang)) score += 2; else if (/^en/i.test(v.lang)) score += 1;
-        if (score > bestScore) { bestScore = score; best = v; }
-    });
+    _voices.forEach((v) => { const s = scoreVoice(v, true); if (s > bestScore) { bestScore = s; best = v; } });
     _femaleVoice = best || null;
     return _femaleVoice;
+}
+
+// A rotating pool of the most natural-sounding voices — used to give NPC/pedestrian
+// lines real variety instead of a purely random pick that often lands on a robotic voice.
+let _variedPool = null;
+let _variedIdx = 0;
+function pickVariedVoice() {
+    if (!_voices.length) loadVoices();
+    if (!_variedPool) {
+        const ranked = _voices.map((v) => ({ v, s: scoreVoice(v, false) })).sort((a, b) => b.s - a.s);
+        // keep the good ones (positive score), fall back to whatever exists
+        const good = ranked.filter((r) => r.s > 0).map((r) => r.v);
+        _variedPool = (good.length ? good : _voices).slice(0, 8);
+    }
+    if (!_variedPool.length) return null;
+    const v = _variedPool[_variedIdx % _variedPool.length];
+    _variedIdx = (_variedIdx + 1 + Math.floor(Math.random() * 2)) % Math.max(1, _variedPool.length);
+    return v;
 }
 
 let lastSpeakAt = 0;
@@ -494,9 +518,9 @@ export function speak(text, opts = {}) {
         u.volume = opts.volume != null ? opts.volume : 0.95;
         let voice = null;
         if (opts.female) voice = pickFemaleVoice();
-        if (!voice && _voices.length) {
-            const idx = opts.voiceIndex != null ? (opts.voiceIndex % _voices.length) : Math.floor(Math.random() * _voices.length);
-            voice = _voices[idx];
+        if (!voice) {
+            if (opts.voiceIndex != null && _voices.length) voice = _voices[opts.voiceIndex % _voices.length];
+            else voice = pickVariedVoice(); // natural, rotating — not a random robotic pick
         }
         if (voice) u.voice = voice;
         if (opts.onEnd) u.onend = opts.onEnd; // note: do NOT advance on error (first-utterance quirk)
@@ -527,8 +551,44 @@ export function speakPedestrian(kind) {
     if (kind === 'fast') pool = GREETINGS_FAST;
     else if (kind === 'cheer') pool = GREETINGS_CHEER;
     else pool = GREETINGS_NEUTRAL;
-    // each pedestrian gets a different random voice + pitch (variety)
-    speak(pool[Math.floor(Math.random() * pool.length)], { voiceIndex: Math.floor(Math.random() * 99), pitch: 0.8 + Math.random() * 0.8 });
+    // Each pedestrian gets a natural (non-robotic) voice from the rotating pool,
+    // plus randomized pitch AND rate so lines feel like different people, not one robot.
+    speak(pool[Math.floor(Math.random() * pool.length)], {
+        pitch: 0.85 + Math.random() * 0.7,
+        rate: 0.9 + Math.random() * 0.35,
+        minGap: 900,
+    });
+}
+
+// --- Cute synth PET VOICE (not TTS — chirps/trills so it's unmistakably a pet) ---
+export function playPetVoice(kind = 'happy') {
+    if (!soundEnabled) return;
+    try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        const chirp = (startF, endF, t0, dur, vol = 0.12, type = 'triangle') => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.type = type;
+            osc.frequency.setValueAtTime(startF, now + t0);
+            osc.frequency.exponentialRampToValueAtTime(endF, now + t0 + dur);
+            gain.gain.setValueAtTime(0.001, now + t0);
+            gain.gain.exponentialRampToValueAtTime(vol, now + t0 + dur * 0.3);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + t0 + dur);
+            osc.start(now + t0); osc.stop(now + t0 + dur + 0.02);
+        };
+        if (kind === 'excited') {
+            // fast happy trill up
+            [0, 0.09, 0.18, 0.27].forEach((t, i) => chirp(700 + i * 160, 1000 + i * 200, t, 0.09, 0.11));
+        } else if (kind === 'curious') {
+            chirp(620, 900, 0, 0.14, 0.11); chirp(760, 560, 0.15, 0.16, 0.09);
+        } else if (kind === 'sad') {
+            chirp(720, 360, 0, 0.32, 0.1, 'sine');
+        } else { // happy: rising double chirp
+            chirp(660, 980, 0, 0.11, 0.12); chirp(880, 1180, 0.12, 0.13, 0.12);
+        }
+    } catch (e) { /* ignore */ }
 }
 
 // --- Number-to-words (0..100 covers 2nd grade) + spoken equation for teaching ---

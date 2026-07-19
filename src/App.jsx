@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useReducer, useState, lazy, Suspense } from 'react';
 import { CookieMonsterGame, SeeSawGame, AlligatorGame } from './components/MiniGames';
 import { STAGE_NAMES, FEATURE_NAMES, EVOLUTION_TITLES, getStageParams } from './utils/mathQuestState';
-import { playSound, setSoundEnabled, isSoundEnabled } from './utils/sound';
+import { playSound, setSoundEnabled, isSoundEnabled, playPetVoice } from './utils/sound';
 import { ensureProfile, listProfiles, getActiveProfile, getActiveProfileId, createProfile, setActiveProfile, deleteProfile, getStats } from './utils/profileStore';
 import './App.css';
 
@@ -519,6 +519,7 @@ export default function App() {
   const feedPet = (foodCost) => {
     if (stars < foodCost) { playSound('buzz'); alert(`You need ${foodCost} more stars for pet food!`); return; }
     playSound('chime');
+    playPetVoice('happy'); // the pet chirps happily when fed
     const nextStars = stars - foodCost;
     set({ stars: nextStars });
     saveProfile(nextStars, maxStageUnlocked, unlockedFeatures);
@@ -532,7 +533,7 @@ export default function App() {
       set({ petLove: 0, petBondLevel: nextBond });
       storage.set('pet_love', 0);
       storage.set('pet_bond_level', nextBond);
-      setTimeout(() => { playSound('chime'); addStars(25); triggerToast('💖 Pet Level Up!', 'Your pet loves you! +25 Stars!'); }, 500);
+      setTimeout(() => { playPetVoice('excited'); playSound('chime'); addStars(25); triggerToast('💖 Pet Level Up!', 'Your pet loves you! +25 Stars!'); }, 500);
     } else {
       set({ petLove: nextLove });
       storage.set('pet_love', nextLove);
