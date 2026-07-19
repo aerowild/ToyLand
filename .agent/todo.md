@@ -4,9 +4,10 @@ Owner decisions (2026-07-18): target age **6–8** (Grade 1→2→3, SFUSD/CA Co
 **add/sub mastery first, then multiplication, then division**. See `.agent/plan.md` for the full roadmap.
 
 ## NOW — Phase 0: Stabilize & verify (before handing to the kid)
-- [ ] 0a. Vitest math-logic tests: every stage target reachable from its `clicks`; every `getAdaptiveProblem` result has answer ∈ choices and correct arithmetic; fraction/clock targets consistent.
-- [ ] 0b. Headless playtest across all 24 stages + a full run (win / lose / checkpoint); fix glitches.
-- [ ] 0b. Resolve the **3D Math Quest black-canvas** question (black in headless software-WebGL; confirm it renders in GPU Chrome, else fix scene/camera/background).
+- [x] 0a. Vitest math-logic tests (tests/mathLogic.test.js): 24 stage-reachability checks + runner problem correctness. `npm test`.
+- [x] 0b. Headless playtest (`node scripts/playtest.mjs stages`): all 24 stages + all nav views load with 0 console/page errors.
+- [ ] 0b. CONFIRM IN REAL CHROME: bridge stages (1/9/17) render BLACK under headless software-WebGL while every other stage renders fine. Owner has GPU Chrome open — verify stage 1 shows the bridge scene (not black). If black there too, it's a real bug (investigate bridge PuzzleScene/CameraRig).
+- [ ] 0b. CONFIRM IN REAL CHROME: full run win/lose + checkpoint crossing (checkpoint dual-WebGL fix landed but not verifiable headless).
 
 ## NEXT — Phase 1: Anti-guessing & policing (constraint #3)
 - [ ] Replace `MathQuest3D.checkAnswer` exact-gap reveal ("Need 3 more!") with directional, non-numeric feedback + capped-attempts → tutor.

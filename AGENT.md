@@ -19,8 +19,9 @@ npm run build    # verify after every change
 ## Playtest (headless browser — works in this WSL env)
 - `playwright` + `vitest` are devDependencies. Chromium headless shell is installed under `~/.cache/ms-playwright`.
 - The dev server is reachable from WSL at `http://localhost:8888` (returns 200).
-- `scratch/playtest.mjs` (gitignored) loads the app, dismisses the daily "Star Chest" modal ("Maybe Later"), navigates all nav views, captures console + page errors, and screenshots to `scratch/shots/`. Run: `node scratch/playtest.mjs`. View shots with the image reader.
-- Caveats: headless uses **software WebGL** (no GPU) so perf warnings + occasional black 3D frames are environment artifacts, not necessarily app bugs; emoji render as tofu boxes. Always sanity-check a suspected 3D bug against real Chrome.
+- `scripts/playtest.mjs` (tracked, reusable) loads the app, dismisses the daily "Star Chest" modal, and captures console + page errors + screenshots to `scratch/shots/`. Modes: `node scripts/playtest.mjs` (walk nav views) or `node scripts/playtest.mjs stages` (admin-unlock + walk all 24 3D stages).
+- Verified 2026-07-18: 0 console/page errors across all nav views AND all 24 stages.
+- Caveats: headless uses **software WebGL** (no GPU) so perf warnings + occasional black 3D frames are environment artifacts, not necessarily app bugs; emoji render as tofu boxes. **Known:** the bridge stages (1/9/17) render black under software WebGL while all other stages render — believed SwiftShader-only (needs confirmation in real GPU Chrome). Always sanity-check a suspected 3D bug against real Chrome.
 
 ## Architecture
 - `src/App.jsx` — dashboard + global state (`useReducer`). Views: dashboard, mathquest3d, sandbox, classic-labs, stats, shop3d, graduation, mini-*. localStorage keys use `toy_land_` prefix. Admin password: `12345`.
