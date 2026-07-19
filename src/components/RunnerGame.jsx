@@ -388,7 +388,7 @@ function RunnerScene({ engine, features, petColor, petAccessory }) {
     [-1, 1].forEach((side) => {
       for (let k = 0; k < 5; k++) {
         buildings.push({
-          x: side * (5.5 + Math.random() * 1.8),
+          x: side * (6.6 + Math.random() * 1.8),
           z: -k * 13 - (side < 0 ? 0 : 6),
           h: 2.6 + Math.random() * 4,
           w: 1.6 + Math.random() * 1.3,
@@ -398,15 +398,17 @@ function RunnerScene({ engine, features, petColor, petAccessory }) {
     });
     const trees = [];
     [-1, 1].forEach((side) => {
-      for (let k = 0; k < 5; k++) trees.push({ x: side * (3.7 + Math.random() * 0.5), z: -k * 13 - 5 });
+      for (let k = 0; k < 5; k++) trees.push({ x: side * (5.2 + Math.random() * 0.4), z: -k * 13 - 5 });
     });
     const dashes = [];
     for (let i = 0; i < 28; i++) dashes.push({ x: i % 2 === 0 ? -0.9 : 0.9, z: -i * 2 });
     const birds = [];
     for (let i = 0; i < 5; i++) birds.push({ x: -8 + Math.random() * 16, y: 5 + Math.random() * 3, z: -10 - i * 9, sp: 1.5 + Math.random() * 1.5, ph: Math.random() * 6 });
+    // Trams run in a track right ALONGSIDE the road (just outside the ±3.1 curb),
+    // in front of the trees/buildings — not hidden behind them.
     const trams = [
-      { x: -9.5, z: -20, color: '#dc2626', sp: 6 },
-      { x: 9.5, z: -55, color: '#16a34a', sp: 5 },
+      { x: -4.2, z: -20, color: '#dc2626', sp: 6 },
+      { x: 4.2, z: -55, color: '#16a34a', sp: 5 },
     ];
     sceneRef.current = { buildings, trees, dashes, birds, trams, BSPAN: 65, TSPAN: 65, DSPAN: 56 };
   }
