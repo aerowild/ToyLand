@@ -362,6 +362,24 @@ const StaticWorld = React.memo(function StaticWorld({ sceneRef, engine }) {
         </group>
       ))}
       {/* side trams */}
+      {/* Tram track: two steel rails + sleepers running the full scroll span under each tram lane */}
+      {sc.trams.map((tr, i) => (
+        <group key={`track-${i}`} position={[tr.x, 0, -35]}>
+          {[-0.32, 0.32].map((rx, r) => (
+            <mesh key={r} position={[rx, 0.03, 0]}><boxGeometry args={[0.08, 0.05, 100]} /><meshStandardMaterial color="#94a3b8" metalness={0.8} roughness={0.3} /></mesh>
+          ))}
+          {Array.from({ length: 26 }).map((_, s) => (
+            <mesh key={s} position={[0, 0.005, -50 + s * 4]}><boxGeometry args={[0.9, 0.04, 0.3]} /><meshStandardMaterial color="#78350f" roughness={0.9} /></mesh>
+          ))}
+          {/* overhead power line poles, sparse */}
+          {Array.from({ length: 6 }).map((_, s) => (
+            <group key={s} position={[tr.x < 0 ? -0.5 : 0.5, 0, -50 + s * 16]}>
+              <mesh position={[0, 1.6, 0]}><cylinderGeometry args={[0.04, 0.05, 3.2, 8]} /><meshStandardMaterial color="#475569" /></mesh>
+              <mesh position={[tr.x < 0 ? 0.4 : -0.4, 3.1, 0]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.02, 0.02, 0.8, 6]} /><meshStandardMaterial color="#475569" /></mesh>
+            </group>
+          ))}
+        </group>
+      ))}
       {sc.trams.map((tr, i) => (
         <group key={i} ref={(el) => (tramRefs.current[i] = el)} position={[tr.x, 0.5, tr.z]}>
           <RoundedBox args={[1.0, 1.3, 4.5]} radius={0.18} smoothness={2}><meshStandardMaterial color={tr.color} metalness={0.4} roughness={0.4} /></RoundedBox>
@@ -369,6 +387,9 @@ const StaticWorld = React.memo(function StaticWorld({ sceneRef, engine }) {
             <mesh key={k} position={[(tr.x < 0 ? 0.51 : -0.51), 0.2, z]} rotation={[0, Math.PI / 2, 0]}><planeGeometry args={[0.6, 0.5]} /><meshStandardMaterial color="#bae6fd" emissive="#7dd3fc" emissiveIntensity={0.4} /></mesh>
           ))}
           <mesh position={[0, 0.72, 0]}><boxGeometry args={[1.05, 0.12, 4.5]} /><meshStandardMaterial color="#e2e8f0" /></mesh>
+          {/* pantograph reaching up to the overhead wire */}
+          <mesh position={[0, 0.95, 0]}><boxGeometry args={[0.06, 0.4, 0.06]} /><meshStandardMaterial color="#334155" /></mesh>
+          <mesh position={[0, 1.15, 0]}><boxGeometry args={[0.4, 0.04, 0.3]} /><meshStandardMaterial color="#334155" metalness={0.7} /></mesh>
         </group>
       ))}
     </group>

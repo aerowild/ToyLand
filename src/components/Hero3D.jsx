@@ -85,6 +85,90 @@ function SparkEffect({ scale = 1, color = '#fde047' }) {
   );
 }
 
+// Force Field: 3 small energy orbs orbiting the shimmering bubble on independent paths —
+// makes the shield read as an active power, not just a static translucent ball.
+function ForceFieldOrbs() {
+  const ref = useRef();
+  useFrame((s) => {
+    const t = s.clock.elapsedTime;
+    if (!ref.current) return;
+    ref.current.children.forEach((orb, i) => {
+      const speed = 1.1 + i * 0.35;
+      const r = 0.78;
+      const a = t * speed + i * (Math.PI * 2 / 3);
+      orb.position.set(Math.cos(a) * r, 0.6 + Math.sin(t * 1.5 + i) * 0.18, Math.sin(a) * r);
+    });
+  });
+  return (
+    <group ref={ref}>
+      {[0, 1, 2].map((i) => (
+        <mesh key={i}><sphereGeometry args={[0.05, 10, 10]} /><meshStandardMaterial color="#7dd3fc" emissive="#38bdf8" emissiveIntensity={1.4} /></mesh>
+      ))}
+    </group>
+  );
+}
+
+// Generic "powered on" pulse: wraps any gadget mesh/group and animates emissive glow +
+// a subtle scale breathe, so equipped gear reads as ACTIVE rather than static plastic.
+function PulseGlow({ children, speed = 2.6, minI = 0.5, maxI = 1.3, scaleAmt = 0.06, phase = 0 }) {
+  const ref = useRef();
+  useFrame((s) => {
+    const t = s.clock.elapsedTime * speed + phase;
+    const g = ref.current;
+    if (!g) return;
+    const k = (Math.sin(t) + 1) / 2; // 0..1
+    const sc = 1 + Math.sin(t) * scaleAmt;
+    g.scale.set(sc, sc, sc);
+    g.traverse((o) => { if (o.material && 'emissiveIntensity' in o.material) o.material.emissiveIntensity = minI + k * (maxI - minI); });
+  });
+  return <group ref={ref}>{children}</group>;
+}
+
+// Brain Crown: slowly rotates (like a thinking-cap halo) while its 5 gems softly pulse.
+function BrainCrownAnim({ children }) {
+  const ref = useRef();
+  useFrame((s) => { if (ref.current) ref.current.rotation.y = s.clock.elapsedTime * 0.6; });
+  return (
+    <group ref={ref} position={[-0.03, 0.27, 0]}>
+      <PulseGlow speed={1.8} minI={0.6} maxI={1.2} scaleAmt={0}>{children}</PulseGlow>
+    </group>
+  );
+}
+
+// Scanner Light: the lamp head sweeps side to side like an active radar scanner, beam pulses.
+function ScannerLightAnim() {
+  const ref = useRef();
+  useFrame((s) => { if (ref.current) ref.current.rotation.z = Math.sin(s.clock.elapsedTime * 1.6) * 0.35; });
+  return (
+    <group ref={ref} position={[0.04, 0.06, 0.06]}>
+      <mesh rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.045, 0.05, 0.12, 12]} /><meshStandardMaterial color="#94a3b8" metalness={0.85} roughness={0.25} /></mesh>
+      <PulseGlow speed={4} minI={0.9} maxI={1.7} scaleAmt={0.04}>
+        <mesh position={[0.09, 0, 0]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.05, 0.05, 0.02, 16]} /><meshStandardMaterial color="#fde047" emissive="#fde047" emissiveIntensity={1.3} /></mesh>
+        <mesh position={[0.22, 0, 0]} rotation={[0, 0, -Math.PI / 2]}><coneGeometry args={[0.1, 0.28, 16, 1, true]} /><meshStandardMaterial color="#fef9c3" emissive="#fde047" emissiveIntensity={0.6} transparent opacity={0.3} side={THREE.DoubleSide} /></mesh>
+      </PulseGlow>
+    </group>
+  );
+}
+
+// Star Core: the two overlapping 5-point stars spin against each other + pulse — reads as
+// a spinning power core, not a flat sticker.
+function StarCoreAnim() {
+  const aRef = useRef(); const bRef = useRef();
+  useFrame((s) => {
+    const t = s.clock.elapsedTime;
+    if (aRef.current) aRef.current.rotation.x = t * 1.4;
+    if (bRef.current) bRef.current.rotation.x = -t * 1.1;
+  });
+  return (
+    <group position={[0.24, 0.6, 0]}>
+      <PulseGlow speed={3} minI={1.0} maxI={2.0} scaleAmt={0.08}>
+        <mesh ref={aRef} rotation={[0, Math.PI / 2, 0]}><cylinderGeometry args={[0.14, 0.14, 0.04, 5]} /><meshStandardMaterial color="#fde047" emissive="#fbbf24" emissiveIntensity={1.5} /></mesh>
+        <mesh ref={bRef} rotation={[0, Math.PI / 2, Math.PI / 5]}><cylinderGeometry args={[0.14, 0.14, 0.035, 5]} /><meshStandardMaterial color="#fde047" emissive="#fbbf24" emissiveIntensity={1.5} /></mesh>
+      </PulseGlow>
+    </group>
+  );
+}
+
 // Aura — realistic, distinct per kind (fire flames, lightning bolts, ice crystals, energy ring)
 function AuraEffect({ kind }) {
   const ref = useRef();
@@ -180,6 +264,7 @@ export default function Hero3D({
   const wingsRef = useRef();
   const capeRef = useRef();
   const haloRef = useRef();
+  const shieldRef = useRef();
 
   // Gear (index matches FEATURE_NAMES)
   const hasRocketBoots  = features.includes(0);
@@ -311,6 +396,12 @@ export default function Hero3D({
     if (wingsRef.current) wingsRef.current.rotation.z = Math.sin(t * 4) * 0.16;
     if (capeRef.current) capeRef.current.rotation.x = -0.2 + Math.sin(t * 3 + 1) * 0.1;
     if (haloRef.current) { haloRef.current.rotation.y = t * 1.2; haloRef.current.position.y = 1.55 + Math.sin(t * 2) * 0.03; }
+    if (shieldRef.current) {
+      const pulse = 0.8 + Math.sin(t * 2.4) * 0.2;
+      shieldRef.current.scale.set(pulse, pulse, pulse);
+      shieldRef.current.rotation.y = t * 0.5;
+      if (shieldRef.current.material) shieldRef.current.material.emissiveIntensity = 0.25 + Math.sin(t * 3) * 0.15;
+    }
   });
 
   const renderPetAccessory = () => {
@@ -404,7 +495,9 @@ export default function Hero3D({
               <mesh position={[0.05, 0, 0]} scale={[0.42, 1, 1]}><sphereGeometry args={[0.055, 16, 16]} /><meshStandardMaterial color={hasLaserEyes ? '#7f1d1d' : '#082f49'} /></mesh>
               <mesh position={[0.07, 0.035, 0.035]} scale={[0.42, 1, 1]}><sphereGeometry args={[0.022, 8, 8]} /><meshBasicMaterial color="#ffffff" /></mesh>
               {hasLaserEyes && (
-                <mesh position={[0.16, 0, 0]} rotation={[0, 0, -Math.PI / 2]}><coneGeometry args={[0.03, 0.34, 10]} /><meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={1.3} transparent opacity={0.7} /></mesh>
+                <PulseGlow speed={5} minI={0.9} maxI={1.8} scaleAmt={0.03}>
+                  <mesh position={[0.16, 0, 0]} rotation={[0, 0, -Math.PI / 2]}><coneGeometry args={[0.03, 0.34, 10]} /><meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={1.3} transparent opacity={0.7} /></mesh>
+                </PulseGlow>
               )}
             </group>
           ))}
@@ -419,13 +512,15 @@ export default function Hero3D({
           {hasTechVisor && (
             <group position={[0.21, 0.06, 0]}>
               <RoundedBox args={[0.08, 0.12, 0.46]} radius={0.03} smoothness={3}><meshStandardMaterial color="#1e293b" metalness={0.9} roughness={0.1} /></RoundedBox>
-              <mesh position={[0.045, 0, 0]}><boxGeometry args={[0.015, 0.05, 0.4]} /><meshStandardMaterial color={cyan} emissive={cyan} emissiveIntensity={1} /></mesh>
+              <PulseGlow speed={3.4} minI={0.6} maxI={1.4} scaleAmt={0}>
+                <mesh position={[0.045, 0, 0]}><boxGeometry args={[0.015, 0.05, 0.4]} /><meshStandardMaterial color={cyan} emissive={cyan} emissiveIntensity={1} /></mesh>
+              </PulseGlow>
             </group>
           )}
 
           {/* Brain Crown (S22) */}
           {hasBrainCrown && (
-            <group position={[-0.03, 0.27, 0]}>
+            <BrainCrownAnim>
               <mesh rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.2, 0.22, 0.1, 16, 1, true]} /><meshStandardMaterial color="#fbbf24" metalness={0.9} roughness={0.2} side={THREE.DoubleSide} /></mesh>
               {[0, 1, 2, 3, 4].map(i => {
                 const a = (i / 5) * Math.PI * 2;
@@ -436,7 +531,7 @@ export default function Hero3D({
                   </group>
                 );
               })}
-            </group>
+            </BrainCrownAnim>
           )}
         </group>
 
@@ -488,7 +583,9 @@ export default function Hero3D({
           {hasGoldBelt && (
             <group position={[0, 0.38, 0]}>
               <RoundedBox args={[0.48, 0.09, 0.44]} radius={0.03} smoothness={3}><meshStandardMaterial color="#fbbf24" metalness={0.9} roughness={0.2} /></RoundedBox>
-              <mesh position={[0.23, 0, 0]}><boxGeometry args={[0.04, 0.11, 0.11]} /><meshStandardMaterial color="#fde047" emissive="#f59e0b" emissiveIntensity={0.5} metalness={0.9} /></mesh>
+              <PulseGlow speed={2.4} minI={0.3} maxI={0.9}>
+                <mesh position={[0.23, 0, 0]}><boxGeometry args={[0.04, 0.11, 0.11]} /><meshStandardMaterial color="#fde047" emissive="#f59e0b" emissiveIntensity={0.5} metalness={0.9} /></mesh>
+              </PulseGlow>
             </group>
           )}
 
@@ -496,17 +593,14 @@ export default function Hero3D({
           {hasCoreBadge && (
             <group position={[0.235, 0.56, 0]} rotation={[0, 0, Math.PI / 2]}>
               <mesh><cylinderGeometry args={[0.1, 0.1, 0.05, 6]} /><meshStandardMaterial color="#334155" metalness={0.8} roughness={0.2} /></mesh>
-              <mesh position={[0, 0.03, 0]}><cylinderGeometry args={[0.06, 0.06, 0.02, 20]} /><meshStandardMaterial color="#f59e0b" emissive="#f59e0b" emissiveIntensity={1.3} /></mesh>
+              <PulseGlow speed={2.2} minI={0.7} maxI={1.6}>
+                <mesh position={[0, 0.03, 0]}><cylinderGeometry args={[0.06, 0.06, 0.02, 20]} /><meshStandardMaterial color="#f59e0b" emissive="#f59e0b" emissiveIntensity={1.3} /></mesh>
+              </PulseGlow>
             </group>
           )}
 
           {/* Star Core (S23) - big glowing star on chest */}
-          {hasStarCore && (
-            <group position={[0.24, 0.6, 0]}>
-              <mesh rotation={[0, Math.PI / 2, 0]}><cylinderGeometry args={[0.14, 0.14, 0.04, 5]} /><meshStandardMaterial color="#fde047" emissive="#fbbf24" emissiveIntensity={1.5} /></mesh>
-              <mesh rotation={[0, Math.PI / 2, Math.PI / 5]}><cylinderGeometry args={[0.14, 0.14, 0.035, 5]} /><meshStandardMaterial color="#fde047" emissive="#fbbf24" emissiveIntensity={1.5} /></mesh>
-            </group>
-          )}
+          {hasStarCore && <StarCoreAnim />}
         </group>
 
         {/* ===================== BACK GEAR ===================== */}
@@ -577,11 +671,7 @@ export default function Hero3D({
 
             {/* Scanner Light (S15) on LEFT shoulder */}
             {hasScannerLight && arm.s === 1 && (
-              <group position={[0.04, 0.06, 0.06]}>
-                <mesh rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.045, 0.05, 0.12, 12]} /><meshStandardMaterial {...MsilverDark} /></mesh>
-                <mesh position={[0.09, 0, 0]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.05, 0.05, 0.02, 16]} /><meshStandardMaterial color="#fde047" emissive="#fde047" emissiveIntensity={1.3} /></mesh>
-                <mesh position={[0.22, 0, 0]} rotation={[0, 0, -Math.PI / 2]}><coneGeometry args={[0.1, 0.28, 16, 1, true]} /><meshStandardMaterial color="#fef9c3" emissive="#fde047" emissiveIntensity={0.6} transparent opacity={0.3} side={THREE.DoubleSide} /></mesh>
-              </group>
+              <ScannerLightAnim />
             )}
 
             {/* hand */}
@@ -590,7 +680,9 @@ export default function Hero3D({
             {/* Ice Shield (S9) on LEFT arm - glowing ice */}
             {hasIceShield && arm.s === 1 && (
               <group position={[0.16, -0.18, 0.08]}>
-                <mesh rotation={[0, Math.PI / 2, 0]}><cylinderGeometry args={[0.24, 0.24, 0.05, 6]} /><meshStandardMaterial color="#a5f3fc" emissive="#22d3ee" emissiveIntensity={0.5} metalness={0.3} roughness={0.1} transparent opacity={0.85} /></mesh>
+                <PulseGlow speed={2} minI={0.35} maxI={0.85}>
+                  <mesh rotation={[0, Math.PI / 2, 0]}><cylinderGeometry args={[0.24, 0.24, 0.05, 6]} /><meshStandardMaterial color="#a5f3fc" emissive="#22d3ee" emissiveIntensity={0.5} metalness={0.3} roughness={0.1} transparent opacity={0.85} /></mesh>
+                </PulseGlow>
                 <mesh rotation={[0, Math.PI / 2, 0]}><torusGeometry args={[0.24, 0.025, 6, 6]} /><meshStandardMaterial color="#0891b2" metalness={0.85} /></mesh>
                 <group position={[0.06, 0, 0]}><FrostEffect scale={0.9} /></group>
               </group>
@@ -612,8 +704,10 @@ export default function Hero3D({
               <group position={[0, -0.34, 0]}>
                 <mesh position={[0, -0.02, 0]}><cylinderGeometry args={[0.08, 0.09, 0.26, 14]} /><meshStandardMaterial {...MsilverDark} /></mesh>
                 <mesh position={[0, -0.18, 0]}><cylinderGeometry args={[0.06, 0.07, 0.08, 14]} /><meshStandardMaterial color="#1e293b" metalness={0.9} /></mesh>
-                <mesh position={[0, -0.2, 0]}><torusGeometry args={[0.055, 0.018, 8, 16]} /><meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={1.1} /></mesh>
-                <mesh position={[0.07, 0.02, 0]}><sphereGeometry args={[0.03, 8, 8]} /><meshStandardMaterial color={cyan} emissive={cyan} emissiveIntensity={1} /></mesh>
+                <PulseGlow speed={3.6} minI={0.8} maxI={1.6}>
+                  <mesh position={[0, -0.2, 0]}><torusGeometry args={[0.055, 0.018, 8, 16]} /><meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={1.1} /></mesh>
+                  <mesh position={[0.07, 0.02, 0]}><sphereGeometry args={[0.03, 8, 8]} /><meshStandardMaterial color={cyan} emissive={cyan} emissiveIntensity={1} /></mesh>
+                </PulseGlow>
               </group>
             )}
           </group>
@@ -670,10 +764,13 @@ export default function Hero3D({
 
         {/* Force Field (S19) - shimmering bubble */}
         {hasForceField && (
-          <mesh position={[0, 0.6, 0]}>
-            <sphereGeometry args={[0.82, 24, 24]} />
-            <meshStandardMaterial color="#38bdf8" emissive="#0ea5e9" emissiveIntensity={0.3} transparent opacity={0.16} roughness={0.1} metalness={0.2} />
-          </mesh>
+          <group>
+            <mesh ref={shieldRef} position={[0, 0.6, 0]}>
+              <sphereGeometry args={[0.82, 24, 24]} />
+              <meshStandardMaterial color="#38bdf8" emissive="#0ea5e9" emissiveIntensity={0.3} transparent opacity={0.18} roughness={0.1} metalness={0.2} />
+            </mesh>
+            <ForceFieldOrbs />
+          </group>
         )}
 
       </group>
