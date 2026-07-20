@@ -2,6 +2,15 @@
 
 3D math game for **ages 6–8 (Grade 1 → 2 → 3)**. React + Vite + Three.js (react-three-fiber) + GSAP.
 
+## 🌟 NORTH STAR — current arc (v1.1+, owner-approved 2026-07-19)
+Story: **Robin (mascot robot) vs an interdimensional monster** that kidnapped Robin's friends + stole its
+powers. Loop: **run → speed charges a PORTAL meter → portal opens → 3D MATH boss stage (correct math
+exposes/damages the monster, frees 1 friend + grants 1 permanent power) → run again, harder → final boss.**
+Math IS the combat. See `.agent/plan.md` (2026-07-19 entry) for the full spec + build phases A–E and the
+current phase. Key rules: no literal "88mph" gate (visible charge meter instead); goofy non-scary monster;
+"gloom-bots" not "slaves"; one new timed power (slow-time / double-jump / lane-hop / pass-through) per
+freed friend; 24 friends tied to the 8 math skills; runner stays the timed fluency drill.
+
 ## Product goal & hard constraints (read first)
 - **Audience:** one child, currently entering Grade 2 (SFUSD / California). Scope follows **CA Common Core** (grades 1–3). Reading is OK but keep it light and voice-supported.
 - **Curriculum ladder (CA CCSS):** G1 add/sub within 20 (fluent within 10), place value tens/ones, time hour/half, halves/fourths → G2 add/sub within 100 fluent (within 1000 w/ strategies), **arrays/repeated addition = multiplication foundation**, place value to 1000, money, time to 5 min, thirds → G3 **multiply/divide within 100**, fractions as numbers on a number line + equivalence, area as multiplication, time to minute.

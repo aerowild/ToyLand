@@ -140,3 +140,59 @@ NOTE TO AGENT: This file is organized from oldest plans at the top to the latest
 - **Phase 1 — Anti-guessing & policing.** Directional non-numeric 3D feedback + capped-attempts tutor (remove exact-gap reveal); constrain random-click wins; misconception-based runner distractors; timing fairness.
 - **Phase 2 — Whole-app self-evolving loop.** Route 3D stage results through `recordPuzzleResult` (map stage type → skill); extend ladder to place-value → multiplication → division; day-scale spaced repetition; adaptive stage selection instead of fixed 1–24.
 - **Phase 3 — Age-fit & "doesn't feel like math."** Voice-first / reading-optional flows; lean into story/disguise so bare equations appear only in the intentional Runner drill.
+
+
+## 2026-07-19: STORY / NORTH STAR — "Robin vs the Interdimensional Monster" (owner-approved)
+
+This is the game's narrative spine and the target design. Future agents: build toward this.
+
+### Story
+Robin (the mascot robot) — an interdimensional monster kidnapped Robin's friends and stripped
+Robin's powers. Robin can only reach the monster through a **portal** inside a wormhole. The portal
+opens only when Robin's **running speed charges it up** (Back-to-the-Future "88" is flavor only —
+NOT a literal gate; see below). Each portal run leads to a 3D stage that is a **mini boss fight solved
+with MATH**: correct math exposes/damages the monster and **frees one friend + grants one permanent
+power-up**. The final stage is a full boss fight (mixed-skill math gauntlet = end assessment).
+
+### Core loop
+run (speed builds → charges portal) → portal opens → 3D math boss stage (math defeats monster, free a
+friend + gain a permanent power) → back to running, now faster/harder → repeat → final boss.
+
+### Owner-approved design decisions (2026-07-19)
+1. **No literal 88 mph gate.** Portal opens via a **visible "PORTAL CHARGE" speed meter/marker bar**
+   that fills as speed builds. "88" is a parent easter-egg only. Never let a run stall on a threshold.
+2. **Math IS the combat.** In the boss stage, correct answers expose/damage the monster and free the
+   friend; wrong answers trigger the animated decomposition-tree tutor. Minions/platforming are light
+   connective tissue — math stays central and frequent. (Need to design several interesting math-combat
+   mechanics — see Phase C.) The runner remains the timed mental-math FLUENCY drill.
+3. Non-scary/goofy monster; combat is playful (bonk/poof/free-with-light), NOT violent. Rename
+   "slaves" → "gloom-bots"/"minions".
+4. **One new timed power per freed friend**, each with a ~5s guided demo. Powers: slow-time, double-jump,
+   lane-hop, pass-through (DROP the gravity-push gun — too combat-y). Powers also help the runner as it
+   gets harder.
+5. Chaser alien = gentle "hurry up" nudge, not a punisher; two-hit slowdown (Subway-Surfers-style);
+   die → previous checkpoint (previous speed). Tie chaser aggression to the adaptive engine (ease if the
+   kid keeps dying); never make a run unwinnable.
+6. **24 friends tied to the 8 math skills** — each freed friend teaches/cheers its skill (uses the
+   voice-diversity + pet-voice work); rescued friends shown in a hub as a progress trophy shelf.
+7. Final boss = mixed-skill math gauntlet doubling as an assessment.
+
+### Build phases (implement → test → commit each)
+- **Phase A** — Portal-charge speed meter + loop wiring (reframe the existing distance checkpoint as a
+  speed-charged portal; HUD meter).
+- **Phase B** — LocalLM (qwen3-coder) narrative content, validated + committed as data: 24 friends
+  (name/personality/skill), kid-safe monster taunts, rescue lines, power tutorial scripts, celebration
+  lines. Tone/length/safety-checked; NEVER used in the game loop.
+- **Phase C** — Math-as-combat in the boss stage (correct → expose/damage + free friend; wrong → tutor).
+- **Phase D** — New timed powers (slow-time, double-jump, lane-hop, pass-through).
+- **Phase E** — Tone/safety pass + headless playtest.
+
+### LocalLM role (reminder)
+qwen3-coder @ the owner's LM Studio = OFFLINE BULK CONTENT only (friends, dialogue, taunts, distractor/
+problem banks), always validated by `npm test`/content checks, $0 cloud. Never in the runtime loop;
+never for precise in-file code. If offline, the agent does the work itself.
+
+### Current state at time of writing
+All v1.0.0 mechanisms exist (runner, 24 3D stages, checkpoints, power-ups, adaptive engine, tutor,
+hero+gear). Released v1.0.0. The story above is the NEXT major arc (v1.1+). Runner distractors are now
+misconception-based (bank + fallback). Starting Phase A next.
