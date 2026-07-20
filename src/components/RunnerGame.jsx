@@ -478,7 +478,8 @@ function RunnerScene({ engine, features, petColor, petAccessory }) {
     if (e.paused) return;
 
     // Speed (boost ramps it up)
-    const baseSpeed = Math.min(26, 12 + e.distance * 0.02);
+    // Speed ramps within a segment; each cleared portal grants a small PERMANENT boost.
+    const baseSpeed = Math.min(26 + e.speedBonus, 12 + e.speedBonus + e.distance * 0.02);
     e.speed = baseSpeed * (e.fx.boost > 0 ? 1.7 : 1);
     const move = e.speed * dt;
     e.distance += move;
@@ -616,7 +617,7 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
       paused: true, items: [], spawnTimer: 0.6, removed: false,
       lastTeleDist: -200, lastPowerDist: -120,
       checkpointCount: 0, nextCheckpoint: 900, checkpointActive: false, checkpointDist: 0,
-      cpCountdown: 0, graceUntil: 60, _hudClock: 0,
+      cpCountdown: 0, graceUntil: 60, _hudClock: 0, speedBonus: 0,
       spawnRow() {
         const e = engine.current;
         e.removed = true; // item set changed -> trigger a render
@@ -711,7 +712,9 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
         }
         e._hudClock += 1;
         if (e._hudClock % 6 === 0) {
-          setHud({ coins: e.coins, distance: Math.floor(e.distance), shields: e.shields, magnet: Math.ceil(e.fx.magnet), jetpack: Math.ceil(e.fx.jetpack), boost: Math.ceil(e.fx.boost), double: Math.ceil(e.fx.double), countdown: e.cpCountdown });
+          const segStart = e.nextCheckpoint - 900;
+          const portalCharge = Math.max(0, Math.min(1, (e.distance - segStart) / 900));
+          setHud({ coins: e.coins, distance: Math.floor(e.distance), shields: e.shields, magnet: Math.ceil(e.fx.magnet), jetpack: Math.ceil(e.fx.jetpack), boost: Math.ceil(e.fx.boost), double: Math.ceil(e.fx.double), countdown: e.cpCountdown, portalCharge, speed: e.speed });
         } else if (e.removed) {
           force(n => n + 1);
         }
@@ -826,7 +829,7 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
     e.fx = { magnet: 0, jetpack: 0, boost: 0, double: 0 };
     e.items = []; e.spawnTimer = 0.6; e.removed = false;
     e.lastTeleDist = -200; e.lastPowerDist = -120;
-    e.checkpointCount = 0; e.nextCheckpoint = 900; e.checkpointActive = false; e.checkpointDist = 0;
+    e.checkpointCount = 0; e.nextCheckpoint = 900; e.checkpointActive = false; e.checkpointDist = 0; e.speedBonus = 0;
     e.cpCountdown = 0; e.graceUntil = 60;
     e.paused = true;
     earnedRef.current = [];
@@ -843,6 +846,7 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
     const e = engine.current;
     e.checkpointCount += 1;
     e.nextCheckpoint = e.distance + 900;
+    e.speedBonus += 1.5;   // permanent small speed boost per freed friend (story reward)
     e.coins += 20;
     e.shields += 1;
     // Secure the checkpoint: one free respawn back to here on the next crash
@@ -902,7 +906,7 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
         <div style={{ position: 'absolute', inset: 0, zIndex: 60, background: '#0b1026' }}>
           <div style={{ position: 'absolute', top: 10, left: 0, right: 0, textAlign: 'center', zIndex: 70, pointerEvents: 'none' }}>
             <span style={{ background: 'linear-gradient(135deg,#a855f7,#7c3aed)', color: 'white', fontFamily: "'Fredoka',sans-serif", fontWeight: 900, padding: '8px 20px', borderRadius: 999, fontSize: '1.1rem', boxShadow: '0 6px 20px rgba(124,58,237,0.5)' }}>
-              🏁 CHECKPOINT — Cross the Level to Continue!
+              🌀 PORTAL OPEN — Solve the level to fight the monster & free a friend!
             </span>
           </div>
           <MathQuest3D
@@ -922,8 +926,8 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
       {phase === 'celebrate' && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 65, background: 'rgba(15,23,42,0.55)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: "'Fredoka',sans-serif", pointerEvents: 'none' }}>
           <div style={{ fontSize: '4rem' }}>🎉🏁🎉</div>
-          <div style={{ color: '#fde047', fontWeight: 900, fontSize: '2rem', textShadow: '0 3px 8px rgba(0,0,0,0.5)' }}>Checkpoint Saved!</div>
-          <div style={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem', marginTop: 6, textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>+20 🪙 &nbsp; +1 🛡️ &nbsp; Safe spot secured!</div>
+          <div style={{ color: '#fde047', fontWeight: 900, fontSize: '2rem', textShadow: '0 3px 8px rgba(0,0,0,0.5)' }}>🎉 Friend Freed!</div>
+          <div style={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem', marginTop: 6, textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>+20 🪙 &nbsp; +1 🛡️ &nbsp; ⚡ Faster forever!</div>
           <div style={{ color: '#fff', fontWeight: 800, fontSize: '1rem', marginTop: 18, textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>Back to the run in…</div>
           <div style={{ marginTop: 8, width: 110, height: 110, lineHeight: '110px', textAlign: 'center', borderRadius: '50%', background: 'linear-gradient(135deg,#22c55e,#16a34a)', border: '5px solid #fff', color: '#fff', fontWeight: 900, fontSize: '3.6rem', boxShadow: '0 10px 30px rgba(22,163,74,0.6)' }}>
             {celebrateCount}
@@ -946,10 +950,23 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
         <button onClick={endRun} style={{ pointerEvents: 'auto', background: '#ef4444', color: 'white', border: '3px solid #b91c1c', borderRadius: 999, fontWeight: 900, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>✕ End Run</button>
       </div>
 
+      {/* PORTAL CHARGE meter — fills as Robin's speed builds; portal opens at full (88 = BTTF wink) */}
+      {phase === 'run' && (
+        <div style={{ position: 'absolute', top: 62, left: '50%', transform: 'translateX(-50%)', width: '56%', maxWidth: 430, pointerEvents: 'none', fontFamily: "'Fredoka',sans-serif", textAlign: 'center' }}>
+          <div style={{ color: '#e9d5ff', fontWeight: 900, fontSize: '0.8rem', letterSpacing: 1, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>🌀 PORTAL CHARGE</div>
+          <div style={{ height: 15, borderRadius: 999, background: 'rgba(15,23,42,0.55)', border: '2px solid #a855f7', overflow: 'hidden', marginTop: 2, boxShadow: '0 2px 8px rgba(124,58,237,0.45)' }}>
+            <div style={{ height: '100%', width: `${Math.round((hud.portalCharge || 0) * 100)}%`, background: 'linear-gradient(90deg,#22d3ee,#a855f7,#ec4899)', transition: 'width 0.2s linear' }} />
+          </div>
+          <div style={{ color: '#fff', fontWeight: 800, fontSize: '0.74rem', marginTop: 2, textShadow: '0 1px 3px rgba(0,0,0,0.6)' }}>
+            ⚡ {Math.round(40 + (hud.portalCharge || 0) * 48)} mph {(hud.portalCharge || 0) >= 0.999 ? '— 🌀 PORTAL OPEN!' : ''}
+          </div>
+        </div>
+      )}
+
       {/* Checkpoint countdown */}
       {phase === 'run' && hud.countdown > 0 && (
         <div style={{ position: 'absolute', top: '24%', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none', fontFamily: "'Fredoka',sans-serif" }}>
-          <div style={{ color: '#fff', fontWeight: 900, fontSize: '0.95rem', textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>CHECKPOINT IN</div>
+          <div style={{ color: '#fff', fontWeight: 900, fontSize: '0.95rem', textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>🌀 PORTAL OPENING IN</div>
           <div style={{ display: 'inline-block', marginTop: 6, width: 90, height: 90, lineHeight: '90px', borderRadius: '50%', background: 'rgba(168,85,247,0.85)', border: '4px solid #fff', color: '#fff', fontWeight: 900, fontSize: '3rem', boxShadow: '0 8px 24px rgba(124,58,237,0.5)' }}>{hud.countdown}</div>
         </div>
       )}
