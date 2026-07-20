@@ -4,7 +4,8 @@
 //  (B) every adaptive runner problem is arithmetically correct and well-formed.
 import { describe, it, expect } from 'vitest';
 import { getStageParams, generateStageParams } from '../src/utils/mathQuestState.js';
-import { getAdaptiveProblem, SKILLS } from '../src/utils/profileStore.js';
+import { getAdaptiveProblem, SKILLS, misconceptionDistractors } from '../src/utils/profileStore.js';
+import distractorBank from '../src/utils/distractorBank.json';
 
 // Can we hit `target` (a non-negative integer) by summing `steps` with repetition?
 function canReach(target, steps) {
@@ -87,9 +88,46 @@ describe('adaptive runner problems (getAdaptiveProblem)', () => {
         expect(new Set(q.choices).size).toBe(3);
         expect(q.choices).toContain(q.answer);
         q.choices.forEach((c) => expect(c).toBeGreaterThanOrEqual(0));
+        // distractors must be MISCONCEPTION-based (near the answer or a wrong-operation slip),
+        // never a wild random number that a child could eliminate at a glance.
+        const wrongOp = q.op === '+' ? Math.abs(q.a - q.b) : q.a + q.b;
+        q.choices.filter((c) => c !== q.answer).forEach((c) => {
+          const plausible = Math.abs(c - q.answer) <= 12 || c === wrongOp;
+          expect(plausible, `distractor ${c} for ${q.a}${q.op}${q.b}=${q.answer} not misconception-like`).toBe(true);
+        });
         // skillId is a real skill
         expect(SKILLS.some((s) => s.id === q.skillId)).toBe(true);
       }
+    }
+  });
+});
+
+describe('misconception distractor generator + bank', () => {
+  it('generator returns 2 valid distractors for a wide range of problems', () => {
+    for (let a = 0; a <= 60; a++) for (let b = 0; b <= 12; b++) {
+      for (const op of ['+', '-']) {
+        if (op === '-' && b > a) continue;
+        const ans = op === '+' ? a + b : a - b;
+        const ds = misconceptionDistractors(a, op, b, ans);
+        expect(ds.length).toBe(2);
+        expect(new Set(ds).size).toBe(2);
+        ds.forEach((d) => { expect(Number.isInteger(d)).toBe(true); expect(d).toBeGreaterThanOrEqual(0); expect(d).not.toBe(ans); });
+      }
+    }
+  });
+
+  it('every banked entry is arithmetically consistent and well-formed', () => {
+    const keys = Object.keys(distractorBank);
+    expect(keys.length).toBeGreaterThan(20);
+    for (const key of keys) {
+      const m = key.match(/^(\d+)([+-])(\d+)$/);
+      expect(m, `bad bank key ${key}`).toBeTruthy();
+      const a = +m[1], op = m[2], b = +m[3];
+      const ans = op === '+' ? a + b : a - b;
+      const ds = distractorBank[key];
+      expect(Array.isArray(ds) && ds.length === 2).toBe(true);
+      expect(new Set(ds).size).toBe(2);
+      ds.forEach((d) => { expect(Number.isInteger(d)).toBe(true); expect(d).toBeGreaterThanOrEqual(0); expect(d).not.toBe(ans); });
     }
   });
 });

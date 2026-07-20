@@ -2,6 +2,7 @@
 // Kid profiles + adaptive arithmetic engine (localStorage "cache").
 // Tracks per-skill mastery, repeats failing skills on a spaced interval,
 // relaxes with mastered skills, and slowly introduces harder skills.
+import distractorBank from './distractorBank.json';
 
 const KEY = 'toy_land_profiles_v1';
 
@@ -69,14 +70,37 @@ export function deleteProfile(id) {
   save(d);
 }
 
+// Misconception-based distractors: the WRONG answers a real child would plausibly pick,
+// so choices aren't trivially eliminable. Prefers a qwen3-coder-generated, validated bank
+// (src/utils/distractorBank.json); falls back to the SAME mistake patterns computed in code
+// for any problem not in the bank (bank can't cover every random a,b, and we never call an
+// LLM in the game loop). Always returns up to 2 valid, distinct, non-negative distractors != ans.
+export function misconceptionDistractors(a, op, b, ans) {
+  const out = [];
+  const add = (v) => { v = Math.round(v); if (Number.isInteger(v) && v >= 0 && v !== ans && !out.includes(v)) out.push(v); };
+  const banked = distractorBank[`${a}${op}${b}`];
+  if (banked) banked.forEach(add);
+  if (out.length < 2) {
+    const cands = [];
+    if (op === '+' && (a % 10) + (b % 10) >= 10) cands.push(ans - 10);   // forgot to carry the ten
+    if (op === '-' && (a % 10) < (b % 10)) cands.push(ans + 10);          // borrow error
+    cands.push(op === '+' ? Math.abs(a - b) : a + b);                    // used the wrong operation
+    cands.push(ans + 1, ans - 1, ans + 2, ans - 2, ans + 10, ans - 10);  // miscount / place-value slip
+    cands.forEach(add);
+  }
+  return out.slice(0, 2);
+}
+
 function generateForSkill(s) {
   let a, b, ans;
   if (s.op === '+') { a = rint(s.min, s.max); b = rint(s.min, s.max); ans = a + b; }
   else { a = rint(Math.max(2, s.min), s.max); b = rint(1, a); ans = a - b; }
   const choices = new Set([ans]);
-  while (choices.size < 3) {
-    const spread = Math.max(2, Math.round(s.max * 0.15));
-    const d = ans + rint(-spread, spread);
+  misconceptionDistractors(a, s.op, b, ans).forEach((c) => choices.add(c));
+  // Safety fill (rarely needed) so there are always exactly 3 choices.
+  let guard = 0;
+  while (choices.size < 3 && guard++ < 30) {
+    const d = ans + rint(1, Math.max(3, Math.round(s.max * 0.15))) * (Math.random() < 0.5 ? 1 : -1);
     if (d >= 0 && d !== ans) choices.add(d);
   }
   return { a, b, op: s.op, answer: ans, text: `${a} ${s.op} ${b} = ?`, choices: [...choices].sort(() => Math.random() - 0.5), skillId: s.id };
