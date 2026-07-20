@@ -669,6 +669,97 @@ function CrocodileWater({ y = -0.5, width = 10 }) {
     );
 }
 
+// --- MATH-AS-COMBAT: gloom-bot + caged friend (checkpoint/boss stage) ---
+// The gloom-bot floats above the goal and gets EXPOSED as the puzzle progresses:
+// it shrinks, fades, and turns from gloomy grey to harmless bright as `progress` -> 1.
+// On `cleared`, it poofs and the caged friend is freed with light and hops happily.
+// Non-scary + non-violent by design (goofy face, "poof" not destroy).
+function BossFight({ progress = 0, cleared = false, theme = 'forest' }) {
+    const botRef = useRef();
+    const friendRef = useRef();
+    const poofRef = useRef();
+    const p = Math.max(0, Math.min(1, progress));
+    const exposeColor = new THREE.Color().lerpColors(new THREE.Color('#475569'), new THREE.Color('#a78bfa'), p);
+
+    useFrame((s) => {
+        const t = s.clock.elapsedTime;
+        const bot = botRef.current;
+        if (bot) {
+            bot.position.y = 3.1 + Math.sin(t * 1.6) * 0.18;
+            bot.rotation.y = Math.sin(t * 0.8) * 0.3;
+            // shrink + wobble more nervously as it gets exposed
+            const sc = cleared ? Math.max(0.001, 1 - (Math.min(1, (t % 100))) ) : (1 - p * 0.55);
+            bot.scale.setScalar(cleared ? THREE.MathUtils.damp(bot.scale.x, 0.001, 6, s.clock.getDelta() || 0.016) : sc);
+            bot.visible = bot.scale.x > 0.02;
+        }
+        if (friendRef.current) {
+            friendRef.current.position.y = cleared ? 0.4 + Math.abs(Math.sin(t * 6)) * 0.35 : 0.4;
+        }
+        if (poofRef.current) {
+            poofRef.current.children.forEach((c, i) => {
+                const k = cleared ? (Math.sin(t * 4 + i) + 1) / 2 : 0;
+                c.scale.setScalar(0.001 + k * 0.5);
+                if (c.material) c.material.opacity = cleared ? 0.6 * (1 - k) : 0;
+            });
+        }
+    });
+
+    return (
+        <group position={[0, 0, -2.2]}>
+            {/* Gloom-bot (goofy, not scary) */}
+            <group ref={botRef} position={[0, 3.1, 0]}>
+                <mesh castShadow><icosahedronGeometry args={[0.6, 0]} /><meshStandardMaterial color={exposeColor} emissive={exposeColor} emissiveIntensity={0.25 + p * 0.5} metalness={0.3} roughness={0.6} flatShading /></mesh>
+                {/* two big silly eyes */}
+                {[0.22, -0.22].map((z, i) => (
+                    <group key={i} position={[0.5, 0.12, z]}>
+                        <mesh><sphereGeometry args={[0.15, 14, 14]} /><meshStandardMaterial color="#f8fafc" /></mesh>
+                        <mesh position={[0.1, -0.02 - p * 0.04, 0]}><sphereGeometry args={[0.07, 12, 12]} /><meshStandardMaterial color="#0b1220" /></mesh>
+                    </group>
+                ))}
+                {/* wobbly antennae */}
+                {[0.16, -0.16].map((z, i) => (
+                    <mesh key={i} position={[0, 0.6, z]} rotation={[0, 0, i ? 0.3 : -0.3]}><cylinderGeometry args={[0.02, 0.02, 0.34, 6]} /><meshStandardMaterial color={exposeColor} /></mesh>
+                ))}
+                {/* mouth flips from frown to surprised 'o' as exposed */}
+                <mesh position={[0.52, -0.18, 0]}><torusGeometry args={[0.08 + p * 0.04, 0.02, 8, 16, Math.PI * (0.6 + p)]} /><meshStandardMaterial color="#0b1220" /></mesh>
+            </group>
+
+            {/* Poof cloud on clear */}
+            <group ref={poofRef} position={[0, 3.1, 0]}>
+                {[0, 1, 2, 3, 4].map((i) => { const a = (i / 5) * Math.PI * 2; return (
+                    <mesh key={i} position={[Math.cos(a) * 0.4, Math.sin(a) * 0.3, 0]}><sphereGeometry args={[0.3, 10, 10]} /><meshStandardMaterial color="#e9d5ff" transparent opacity={0} /></mesh>
+                ); })}
+            </group>
+
+            {/* Caged friend at the goal — cage bars fade/lift when cleared */}
+            <group position={[0, 0, 0]}>
+                <group ref={friendRef} position={[0, 0.4, 0]}>
+                    <mesh castShadow><capsuleGeometry args={[0.16, 0.24, 6, 12]} /><meshStandardMaterial color={cleared ? '#22c55e' : '#38bdf8'} emissive={cleared ? '#22c55e' : '#0ea5e9'} emissiveIntensity={cleared ? 0.5 : 0.2} metalness={0.4} roughness={0.4} /></mesh>
+                    {[0.07, -0.07].map((z, i) => (<mesh key={i} position={[0.14, 0.16, z]}><sphereGeometry args={[0.04, 10, 10]} /><meshStandardMaterial color="#0b1220" /></mesh>))}
+                </group>
+                {/* cage */}
+                {!cleared && (
+                    <group>
+                        {[0, 1, 2, 3, 4, 5].map((i) => { const a = (i / 6) * Math.PI * 2; return (
+                            <mesh key={i} position={[Math.cos(a) * 0.34, 0.42, Math.sin(a) * 0.34]}><cylinderGeometry args={[0.015, 0.015, 0.95, 6]} /><meshStandardMaterial color="#94a3b8" metalness={0.8} roughness={0.3} transparent opacity={0.85 - p * 0.5} /></mesh>
+                        ); })}
+                        <mesh position={[0, 0.92, 0]}><cylinderGeometry args={[0.36, 0.36, 0.05, 12]} /><meshStandardMaterial color="#64748b" metalness={0.8} transparent opacity={0.85 - p * 0.5} /></mesh>
+                    </group>
+                )}
+                {/* free-with-light burst on clear */}
+                {cleared && <pointLight position={[0, 0.6, 0]} color="#fde047" intensity={1.5} distance={4} />}
+            </group>
+
+            {/* progress banner floating over the boss */}
+            <Html center position={[0, 4.2, 0]}>
+                <div style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 900, fontSize: '0.8rem', whiteSpace: 'nowrap', color: cleared ? '#16a34a' : '#7c3aed', background: 'rgba(255,255,255,0.9)', padding: '3px 10px', borderRadius: 999, border: `2px solid ${cleared ? '#22c55e' : '#a855f7'}`, userSelect: 'none', pointerEvents: 'none' }}>
+                    {cleared ? '✨ Friend freed! Gloom-bot poofed!' : `🌀 Solve to expose the gloom-bot! ${Math.round(p * 100)}%`}
+                </div>
+            </Html>
+        </group>
+    );
+}
+
 // --- LAVA POOL COMPONENT ---
 function LavaPool({ y = -0.5, width = 10 }) {
     const lavaRef = useRef();
@@ -3156,6 +3247,16 @@ export default function MathQuest3D({
                     pieces={pieces}
                     sequence={sequence}
                 />
+
+                {/* Math-as-combat: a goofy gloom-bot that gets EXPOSED as the puzzle progresses,
+                    and a caged friend freed when the level is cleared (checkpoint/boss stage only). */}
+                {checkpointMode && (
+                    <BossFight
+                        progress={Math.min(1, (puzzleType === 'fraction' ? (currentValue / (pieces || 1)) / (target || 1) : currentValue / (target || 1)) || 0)}
+                        cleared={isLevelCleared}
+                        theme={selectedTheme}
+                    />
+                )}
 
                 {/* Hill: auto-bridge plank from top stair to the goal platform */}
                 {autoBridge && (
