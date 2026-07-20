@@ -263,6 +263,23 @@ function PowerupIcon({ power }) {
       </group>
     );
   }
+  if (power === 'slowtime') {
+    return (
+      <group>
+        <mesh rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[0.24, 0.05, 12, 24]} /><meshStandardMaterial color="#a855f7" emissive="#7c3aed" emissiveIntensity={0.8} metalness={0.5} /></mesh>
+        <mesh position={[0, 0.09, 0]}><boxGeometry args={[0.04, 0.16, 0.04]} /><meshStandardMaterial color="#ede9fe" emissive="#c4b5fd" emissiveIntensity={0.9} /></mesh>
+        <mesh position={[0.08, 0.02, 0]} rotation={[0, 0, -1]}><boxGeometry args={[0.04, 0.12, 0.04]} /><meshStandardMaterial color="#ede9fe" emissive="#c4b5fd" emissiveIntensity={0.9} /></mesh>
+      </group>
+    );
+  }
+  if (power === 'passthrough') {
+    return (
+      <group>
+        <mesh><sphereGeometry args={[0.24, 16, 16]} /><meshStandardMaterial color="#e2e8f0" emissive="#cbd5e1" emissiveIntensity={0.6} transparent opacity={0.45} /></mesh>
+        {[0.08, -0.08].map((x, i) => <mesh key={i} position={[x, 0.05, 0.2]}><sphereGeometry args={[0.045, 10, 10]} /><meshStandardMaterial color="#0b1220" /></mesh>)}
+      </group>
+    );
+  }
   // shield
   return <mesh><sphereGeometry args={[0.28, 18, 18]} /><meshStandardMaterial color="#38bdf8" emissive="#0ea5e9" emissiveIntensity={0.6} transparent opacity={0.55} metalness={0.4} /></mesh>;
 }
@@ -451,6 +468,8 @@ function RunnerScene({ engine, features, petColor, petAccessory }) {
       e.fx.jetpack = Math.max(0, e.fx.jetpack - dt);
       e.fx.boost = Math.max(0, e.fx.boost - dt);
       e.fx.double = Math.max(0, e.fx.double - dt);
+      e.fx.slowtime = Math.max(0, e.fx.slowtime - dt);
+      e.fx.passthrough = Math.max(0, e.fx.passthrough - dt);
       if (e.duckTimer > 0) { e.duckTimer -= dt; if (e.duckTimer <= 0) e.ducking = false; }
     }
 
@@ -498,11 +517,12 @@ function RunnerScene({ engine, features, petColor, petAccessory }) {
 
     // move + collide (x-based, supports crossing & oncoming objects)
     const px = (e.charX != null) ? e.charX : LANES[e.lane];
+    const tScale = e.fx.slowtime > 0 ? 0.45 : 1; // slow-time: obstacles crawl, giving the kid time
     for (let i = e.items.length - 1; i >= 0; i--) {
       const it = e.items[i];
-      it.z += move + (it.extraSpeed ? it.extraSpeed * dt : 0);
+      it.z += move * (it.type === 'coin' ? 1 : tScale) + (it.extraSpeed ? it.extraSpeed * dt * tScale : 0);
       if (it.behavior === 'cross') {
-        it.x += it.vx * dt;
+        it.x += it.vx * dt * tScale;
         if (it.x > 2.6 || it.x < -2.6) it.vx *= -1;
       }
       if (it.type === 'coin' && e.fx.magnet > 0 && it.z > -12) {
@@ -613,7 +633,7 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
     engine.current = {
       lane: 1, charX: 0, charY: 0, vy: 0, jumping: false, ducking: false, duckTimer: 0,
       speed: 12, distance: 0, coins: 0, shields: 0, invincible: 0,
-      fx: { magnet: 0, jetpack: 0, boost: 0, double: 0 },
+      fx: { magnet: 0, jetpack: 0, boost: 0, double: 0, slowtime: 0, passthrough: 0 },
       paused: true, items: [], spawnTimer: 0.6, removed: false,
       lastTeleDist: -200, lastPowerDist: -120,
       checkpointCount: 0, nextCheckpoint: 900, checkpointActive: false, checkpointDist: 0,
@@ -631,7 +651,7 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
         // Power-ups are the (spaced) puzzle triggers now — no more teleporters.
         const canPower = (e.distance - e.lastPowerDist) > 200;
         if (canPower && roll < 0.12) {
-          const POWERS = ['magnet', 'jetpack', 'boost', 'double', 'shield'];
+          const POWERS = ['magnet', 'jetpack', 'boost', 'double', 'shield', 'slowtime', 'passthrough'];
           const power = POWERS[Math.floor(Math.random() * POWERS.length)];
           const lane = Math.floor(Math.random() * 3);
           e.items.push({ id: Math.random(), type: 'powerup', power, lane, x: LANES[lane], y: 1.0, z: SPAWN_Z });
@@ -672,19 +692,21 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
       activatePower(power) {
         const e = engine.current;
         playPowerup(power);
-        const names = { magnet: '🧲 Coin Magnet!', jetpack: '🚀 Jetpack!', boost: '⚡ Speed Boost!', double: '✨ Double Coins!', shield: '🛡️ Shield!' };
+        const names = { magnet: '🧲 Coin Magnet!', jetpack: '🚀 Jetpack!', boost: '⚡ Speed Boost!', double: '✨ Double Coins!', shield: '🛡️ Shield!', slowtime: '🕒 Slow Time!', passthrough: '👻 Ghost Pass!' };
         if (power === 'magnet') e.fx.magnet = 8;
         else if (power === 'jetpack') { e.fx.jetpack = 6; e.invincible = Math.max(e.invincible, 6); }
         else if (power === 'boost') { e.fx.boost = 4.5; e.invincible = Math.max(e.invincible, 4.5); }
         else if (power === 'double') e.fx.double = 10;
+        else if (power === 'slowtime') e.fx.slowtime = 7;
+        else if (power === 'passthrough') { e.fx.passthrough = 6; e.invincible = Math.max(e.invincible, 6); }
         else if (power === 'shield') e.shields += 1;
         setLastReward({ idx: -1, name: names[power] });
         setTimeout(() => setLastReward(null), 1800);
-        setHud({ coins: e.coins, distance: Math.floor(e.distance), shields: e.shields, magnet: Math.ceil(e.fx.magnet), jetpack: Math.ceil(e.fx.jetpack), boost: Math.ceil(e.fx.boost), double: Math.ceil(e.fx.double), countdown: e.cpCountdown });
+        setHud({ coins: e.coins, distance: Math.floor(e.distance), shields: e.shields, magnet: Math.ceil(e.fx.magnet), jetpack: Math.ceil(e.fx.jetpack), boost: Math.ceil(e.fx.boost), double: Math.ceil(e.fx.double), slowtime: Math.ceil(e.fx.slowtime), passthrough: Math.ceil(e.fx.passthrough), countdown: e.cpCountdown });
       },
       onHit(cause) {
         const e = engine.current;
-        if (e.invincible > 0 || e.fx.jetpack > 0 || e.fx.boost > 0) return;
+        if (e.invincible > 0 || e.fx.jetpack > 0 || e.fx.boost > 0 || e.fx.passthrough > 0) return;
         playCrash(cause);
         if (e.shields > 0) { e.shields -= 1; e.invincible = 1.5; return; }
         // Checkpoint twist: send the player back to the last checkpoint, and consume it
@@ -714,7 +736,7 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
         if (e._hudClock % 6 === 0) {
           const segStart = e.nextCheckpoint - 900;
           const portalCharge = Math.max(0, Math.min(1, (e.distance - segStart) / 900));
-          setHud({ coins: e.coins, distance: Math.floor(e.distance), shields: e.shields, magnet: Math.ceil(e.fx.magnet), jetpack: Math.ceil(e.fx.jetpack), boost: Math.ceil(e.fx.boost), double: Math.ceil(e.fx.double), countdown: e.cpCountdown, portalCharge, speed: e.speed });
+          setHud({ coins: e.coins, distance: Math.floor(e.distance), shields: e.shields, magnet: Math.ceil(e.fx.magnet), jetpack: Math.ceil(e.fx.jetpack), boost: Math.ceil(e.fx.boost), double: Math.ceil(e.fx.double), slowtime: Math.ceil(e.fx.slowtime), passthrough: Math.ceil(e.fx.passthrough), countdown: e.cpCountdown, portalCharge, speed: e.speed });
         } else if (e.removed) {
           force(n => n + 1);
         }
@@ -826,7 +848,7 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
     const e = engine.current;
     e.lane = 1; e.charX = 0; e.charY = 0; e.vy = 0; e.jumping = false; e.ducking = false; e.duckTimer = 0;
     e.speed = 12; e.distance = 0; e.coins = 0; e.shields = 0; e.invincible = 0;
-    e.fx = { magnet: 0, jetpack: 0, boost: 0, double: 0 };
+    e.fx = { magnet: 0, jetpack: 0, boost: 0, double: 0, slowtime: 0, passthrough: 0 };
     e.items = []; e.spawnTimer = 0.6; e.removed = false;
     e.lastTeleDist = -200; e.lastPowerDist = -120;
     e.checkpointCount = 0; e.nextCheckpoint = 900; e.checkpointActive = false; e.checkpointDist = 0; e.speedBonus = 0;
@@ -946,6 +968,8 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
           {hud.jetpack > 0 && <span style={{ background: '#e0f2fe', border: '3px solid #0ea5e9', color: '#075985', fontWeight: 900, padding: '6px 12px', borderRadius: 999 }}>🚀 {hud.jetpack}</span>}
           {hud.boost > 0 && <span style={{ background: '#fef9c3', border: '3px solid #eab308', color: '#854d0e', fontWeight: 900, padding: '6px 12px', borderRadius: 999 }}>⚡ {hud.boost}</span>}
           {hud.double > 0 && <span style={{ background: '#fef3c7', border: '3px solid #f59e0b', color: '#92400e', fontWeight: 900, padding: '6px 12px', borderRadius: 999 }}>✨2x {hud.double}</span>}
+          {hud.slowtime > 0 && <span style={{ background: '#ede9fe', border: '3px solid #a855f7', color: '#5b21b6', fontWeight: 900, padding: '6px 12px', borderRadius: 999 }}>🕒 {hud.slowtime}</span>}
+          {hud.passthrough > 0 && <span style={{ background: '#f1f5f9', border: '3px solid #94a3b8', color: '#334155', fontWeight: 900, padding: '6px 12px', borderRadius: 999 }}>👻 {hud.passthrough}</span>}
         </div>
         <button onClick={endRun} style={{ pointerEvents: 'auto', background: '#ef4444', color: 'white', border: '3px solid #b91c1c', borderRadius: 999, fontWeight: 900, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>✕ End Run</button>
       </div>
