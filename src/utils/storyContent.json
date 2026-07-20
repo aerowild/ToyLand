@@ -1,0 +1,170 @@
+{
+"friends": [
+{
+"name": "Buzzy",
+"personality": "busy bee helper",
+"skillId": "add10",
+"cheer": "I love adding numbers with my busy bee wings!"
+},
+{
+"name": "Pip",
+"personality": "little penguin friend",
+"skillId": "sub10",
+"cheer": "Slide into subtraction with me, buddy!"
+},
+{
+"name": "Gigi",
+"personality": "giggly giraffe",
+"skillId": "add20",
+"cheer": "Adding twenty makes me giggle with joy!"
+},
+{
+"name": "Noodle",
+"personality": "noodling octopus",
+"skillId": "sub20",
+"cheer": "I'm great at taking away 20, let's try it!"
+},
+{
+"name": "Squeaky",
+"personality": "squeaky toy robot",
+"skillId": "add50",
+"cheer": "Adding fifty is a big fun adventure for us!"
+},
+{
+"name": "Dotty",
+"personality": "dotty dog with spots",
+"skillId": "sub50",
+"cheer": "Subtracting fifty helps me count my dots better!"
+},
+{
+"name": "Tally",
+"personality": "tall elephant friend",
+"skillId": "add100",
+"cheer": "I can add one hundred with my big trunk!"
+},
+{
+"name": "Bubbles",
+"personality": "bubbly sea creature",
+"skillId": "sub100",
+"cheer": "Taking away one hundred makes me floaty and happy!"
+},
+{
+"name": "Whiskers",
+"personality": "whiskery cat friend",
+"skillId": "add10",
+"cheer": "Meow! Let's add ten together like friends!"
+},
+{
+"name": "Pipper",
+"personality": "pippin penguin",
+"skillId": "sub10",
+"cheer": "I love to subtract with my little beak!"
+},
+{
+"name": "Sunny",
+"personality": "sunny sunflower bot",
+"skillId": "add20",
+"cheer": "Adding twenty makes me shine bright like the sun!"
+},
+{
+"name": "Rusty",
+"personality": "rusty old robot friend",
+"skillId": "sub20",
+"cheer": "I take away 20 and I'm still working great!"
+},
+{
+"name": "Benny",
+"personality": "bouncy bunny friend",
+"skillId": "add50",
+"cheer": "Adding fifty makes me bounce higher than ever!"
+},
+{
+"name": "Muffin",
+"personality": "fluffy muffin robot",
+"skillId": "sub50",
+"cheer": "Subtracting fifty helps me stay light and fluffy!"
+},
+{
+"name": "Tally-Tall",
+"personality": "tall tower elephant",
+"skillId": "add100",
+"cheer": "I can add one hundred with my tall ears!"
+},
+{
+"name": "Frothy",
+"personality": "frothy foam friend",
+"skillId": "sub100",
+"cheer": "Taking away one hundred makes me sparkle and pop!"
+},
+{
+"name": "Nimble",
+"personality": "nimble ninja cat",
+"skillId": "add10",
+"cheer": "I'm quick at adding ten, let's go fast!"
+},
+{
+"name": "Chirpy",
+"personality": "chirpy bird friend",
+"skillId": "sub10",
+"cheer": "I subtract ten and I'm ready to sing again!"
+},
+{
+"name": "Bubbles-Big",
+"personality": "big bubble friend",
+"skillId": "add20",
+"cheer": "Adding twenty makes my bubbles bigger and fun!"
+},
+{
+"name": "Doodle",
+"personality": "doodle drawing robot",
+"skillId": "sub20",
+"cheer": "I draw numbers while subtracting 20, cool!"
+},
+{
+"name": "Sparkle",
+"personality": "sparkly starbot",
+"skillId": "add50",
+"cheer": "Adding fifty makes me sparkle like a star!"
+},
+{
+"name": "Puff",
+"personality": "puffy cloud friend",
+"skillId": "sub50",
+"cheer": "Taking away fifty helps me stay fluffy and light!"
+},
+{
+"name": "Dapper",
+"personality": "dapper ducky friend",
+"skillId": "add100",
+"cheer": "Adding one hundred makes my feathers shine bright!"
+},
+{
+"name": "Bouncey",
+"personality": "bouncy ball robot",
+"skillId": "sub100",
+"cheer": "I bounce and subtract 100, so much fun!"
+}
+],
+"taunts": [
+"You'll never guess this math mystery!",
+"Try solving THAT with your brain!",
+"Ha ha! You can't do that one!",
+"This puzzle is as silly as a rubber duck!",
+"I'm smarter than you think, silly friend!",
+"Can you count to 100? I bet not!",
+"You're slower than a sleepy snail!",
+"Try again with your thinking cap on!",
+"That's like trying to catch bubbles!",
+"Your numbers are all mixed up!"
+],
+"rescues": [
+"Hooray! I'm free to play now!",
+"Yay, let's do math together!",
+"I can't wait to help you count!",
+"Thanks for saving me from gloom!",
+"Let's add and subtract more!",
+"Now I get to be your friend!",
+"Counting is so much fun with friends!",
+"I'm ready to solve puzzles now!"
+]
+}

@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import Hero3D from './Hero3D';
 import { getStageParams, generateStageParams, COLORS, FEATURE_NAMES, getRandomPraise, getHint, calculateStars } from '../utils/mathQuestState';
+import storyContent from '../utils/storyContent.json';
 import { playSound, playStreakComboSound, startCalmMusic, stopCalmMusic } from '../utils/sound';
 
 export function formatTime(val) {
@@ -678,6 +679,11 @@ function BossFight({ progress = 0, cleared = false, theme = 'forest' }) {
     const botRef = useRef();
     const friendRef = useRef();
     const poofRef = useRef();
+    // Pick a gloom-bot taunt + a rescue line once per stage (LocalLM-generated, kid-safe).
+    const lines = useRef({
+        taunt: (storyContent.taunts && storyContent.taunts.length) ? storyContent.taunts[Math.floor(Math.random() * storyContent.taunts.length)] : 'Solve it if you can!',
+        rescue: (storyContent.rescues && storyContent.rescues.length) ? storyContent.rescues[Math.floor(Math.random() * storyContent.rescues.length)] : "Yay, I'm free!",
+    });
     const p = Math.max(0, Math.min(1, progress));
     const exposeColor = new THREE.Color().lerpColors(new THREE.Color('#475569'), new THREE.Color('#a78bfa'), p);
 
@@ -753,7 +759,7 @@ function BossFight({ progress = 0, cleared = false, theme = 'forest' }) {
             {/* progress banner floating over the boss */}
             <Html center position={[0, 4.2, 0]}>
                 <div style={{ fontFamily: 'Fredoka, sans-serif', fontWeight: 900, fontSize: '0.8rem', whiteSpace: 'nowrap', color: cleared ? '#16a34a' : '#7c3aed', background: 'rgba(255,255,255,0.9)', padding: '3px 10px', borderRadius: 999, border: `2px solid ${cleared ? '#22c55e' : '#a855f7'}`, userSelect: 'none', pointerEvents: 'none' }}>
-                    {cleared ? '✨ Friend freed! Gloom-bot poofed!' : `🌀 Solve to expose the gloom-bot! ${Math.round(p * 100)}%`}
+                    {cleared ? `✨ ${lines.current.rescue}` : `🌀 ${lines.current.taunt} (${Math.round(p * 100)}%)`}
                 </div>
             </Html>
         </group>
