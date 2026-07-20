@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-07-20 (story arc v1.1 — Robin vs the gloom-bot: Phases A–E)
+- **Phase A — portal-charge meter:** runner HUD now shows a "🌀 PORTAL CHARGE" speed bar (⚡ mph climbing to 88, BTTF wink) that fills as speed builds; portal (checkpoint) opens at full. Each cleared portal grants a small PERMANENT speed boost (`speedBonus`). Checkpoint reframed as portal ("Solve the level to fight the monster & free a friend!" / "🎉 Friend Freed! ⚡ Faster forever!").
+- **Phase B — LocalLM narrative content:** `src/utils/storyContent.json` via qwen3-coder (24 friends across the 8 skills, 10 gloom-bot taunts, 8 rescue lines), kid-safe content-filtered + length-checked, $0 cloud. Gloom-bot speaks a taunt while fighting, a rescue line on clear.
+- **Phase C — math-as-combat:** `BossFight` in checkpoint/portal 3D stages — a goofy gloom-bot gets EXPOSED (shrinks, greys→bright) as the puzzle progresses, then poofs and frees a caged friend on clear. Non-scary, non-violent.
+- **Phase D — new timed powers:** slow-time (obstacles crawl) + pass-through (ghost phase) — pickup icons, activation, loop effects, HUD badges, added to the power pool.
+- **Phase E — tone/safety + playtest:** source scan clean (no violent/scary/"slave" wording; goofy monster, poof-not-destroy). Headless playtest: 0 console/page errors across all nav views + all 24 stages. 51 math-logic tests pass.
+- LocalLM used for real this session (distractor bank + narrative content) — validated, committed, $0 cloud; never in the runtime loop.
+
 ## 2026-07-18 (local-LLM offload: benchmark + docs)
 - Tested the owner's LM Studio local model (`qwen/qwen3.6-35b-a3b`) via its OpenAI endpoint. Works, correctness high (4/4 on the suite), but it's a **reasoning model with thinking that can't be disabled** — ~96% of output tokens are hidden reasoning; even a one-line hint costs ~14s. Best for offline batch generation, not latency-sensitive work.
 - Added `scripts/llm_bench.mjs` (standardized suite: distractors, sub/add batches, narration) + `.agent/llm_bench_results.md` (tracked results log) so future models compare apples-to-apples. Baseline row recorded.
