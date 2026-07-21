@@ -3724,7 +3724,7 @@ export default function MathQuest3D({
                         flexDirection: 'column',
                         justifyContent: 'center',
                         alignItems: 'center',
-                        zIndex: 200
+                        zIndex: 16777300
                     }}>
                         <div style={{
                             background: 'white',
