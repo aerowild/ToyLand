@@ -33,9 +33,12 @@ function makeProblem(level = 1) {
 
 function QuizModal({ title, subtitle, level, onSolved, onFailed, accent = '#a855f7', timeLimit = 0 }) {
   const [problem] = useState(() => getAdaptiveProblem(level));
+  // Small facts (both operands & the answer within 10) are drilled UNDER TIME PRESSURE for
+  // fluency, even when the caller passed no timeLimit.
+  const effTimeLimit = timeLimit || ((problem.a <= 10 && problem.b <= 10 && problem.answer <= 10) ? 6 : 0);
   const [picked, setPicked] = useState(null);
   const [result, setResult] = useState(null); // 'right' | 'wrong'
-  const [timeLeft, setTimeLeft] = useState(timeLimit);
+  const [timeLeft, setTimeLeft] = useState(effTimeLimit);
   const [tutor, setTutor] = useState(null); // null | 'fail' | 'manual'
   const doneRef = useRef(false);
   const startRef = useRef(Date.now());
@@ -56,8 +59,8 @@ function QuizModal({ title, subtitle, level, onSolved, onFailed, accent = '#a855
   };
 
   useEffect(() => {
-    if (!timeLimit) return;
-    let lastWhole = Math.ceil(timeLimit);
+    if (!effTimeLimit) return;
+    let lastWhole = Math.ceil(effTimeLimit);
     const id = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 0.1) { clearInterval(id); finish(false); return 0; }
@@ -68,7 +71,7 @@ function QuizModal({ title, subtitle, level, onSolved, onFailed, accent = '#a855
       });
     }, 100);
     return () => clearInterval(id);
-  }, [timeLimit]);
+  }, [effTimeLimit]);
 
   const choose = (c) => {
     if (result) return;
@@ -76,7 +79,7 @@ function QuizModal({ title, subtitle, level, onSolved, onFailed, accent = '#a855
     finish(c === problem.answer);
   };
 
-  const pct = timeLimit ? Math.max(0, (timeLeft / timeLimit) * 100) : 100;
+  const pct = effTimeLimit ? Math.max(0, (timeLeft / effTimeLimit) * 100) : 100;
   const tokens = [String(problem.a), problem.op, String(problem.b), '=', String(problem.answer)];
 
   return (
@@ -102,7 +105,7 @@ function QuizModal({ title, subtitle, level, onSolved, onFailed, accent = '#a855
           </div>
         ) : (
           <>
-            {timeLimit > 0 && result === null && (
+            {effTimeLimit > 0 && result === null && (
               <div style={{ margin: '0 0 12px 0' }}>
                 <div style={{ fontWeight: 900, color: timeLeft < 3 ? '#ef4444' : '#475569', marginBottom: 4 }}>⏱️ {Math.ceil(timeLeft)}s</div>
                 <div style={{ height: 10, background: '#e2e8f0', borderRadius: 99, overflow: 'hidden' }}>
@@ -124,7 +127,7 @@ function QuizModal({ title, subtitle, level, onSolved, onFailed, accent = '#a855
                 );
               })}
             </div>
-            {result === null && !timeLimit && (
+            {result === null && !effTimeLimit && (
               <button onClick={() => { playSound('click'); setTutor('manual'); }}
                 style={{ marginTop: 14, fontFamily: 'inherit', fontWeight: 800, fontSize: '0.95rem', padding: '10px 18px', borderRadius: 14, border: '3px solid #0ea5e9', background: '#e0f2fe', color: '#075985', cursor: 'pointer' }}>
                 🤔 Show me how
@@ -1066,7 +1069,7 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
         />
       )}
       {puzzle && puzzle.reason === 'revive' && (
-        <QuizModal title="🧠 Keep Running!" subtitle="Get it right to revive!" level={level} accent="#22c55e" onSolved={revive} onFailed={endRun} />
+        <QuizModal title="🧠 Keep Running!" subtitle="Beat the clock to revive!" level={level} accent="#22c55e" timeLimit={10} onSolved={revive} onFailed={endRun} />
       )}
       {puzzle && puzzle.reason === 'survive' && (
         <QuizModal title="💥 Blocked! Solve to Pass!" subtitle={puzzle.timeLimit ? 'Quick! Beat the clock!' : 'Answer to smash through!'} level={level} accent="#f97316" timeLimit={puzzle.timeLimit || 0} onSolved={surviveSolve} onFailed={surviveFail} />
