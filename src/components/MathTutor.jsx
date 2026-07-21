@@ -6,22 +6,54 @@ import React, { useState, useEffect, useRef } from 'react';
 import { speak, numToWords, primeSpeech } from '../utils/sound';
 
 /* ---------- strategy chooser ---------- */
+// A number is "near a ten" when its ones digit is 8 or 9 (e.g. 19, 28) — round it up.
+function pickCompBase(a, b) {
+  const cands = [];
+  for (const [base, other] of [[a, b], [b, a]]) {
+    if (base % 10 === 8 || base % 10 === 9) {
+      const need = 10 - (base % 10);
+      if (other >= need) cands.push({ base, other, need });
+    }
+  }
+  cands.sort((x, y) => (x.need - y.need) || (y.base - x.base)); // closest to a ten, then larger
+  return cands[0] || null;
+}
+
 function chooseStrategy(a, op, b) {
   if (op === '+') {
-    if (a >= 10 || b >= 10) return 'tree';     // two-digit-ish -> branch into tens & ones
-    if (a + b > 10) return 'makeTenAdd';        // crosses 10 -> make a friendly ten
-    return 'countOn';                           // small -> count on
+    if (pickCompBase(a, b)) return 'compensate'; // 19+9 -> 20+8 (round to a friendly ten)
+    if (a >= 10 || b >= 10) return 'tree';        // two-digit-ish -> branch into tens & ones
+    if (a + b > 10) return 'makeTenAdd';          // crosses 10 -> make a friendly ten
+    return 'countOn';                             // small -> count on
   }
-  return 'countUp';                             // subtraction -> count up ("think addition")
+  return 'countUp';                               // subtraction -> count up ("think addition")
 }
 
 /* ---------- lesson builders ---------- */
 function buildPlan(a, op, b, ans) {
   const strat = chooseStrategy(a, op, b);
+  if (strat === 'compensate') return planCompensation(a, b, ans);
   if (strat === 'tree') return planTree(a, b, ans);
   if (strat === 'makeTenAdd') return planMakeTen(a, b, ans);
   if (strat === 'countOn') return planCountOn(a, b, ans);
   return planCountUp(a, b, ans);
+}
+
+// COMPENSATION: round a near-ten addend up to the ten and take the same from the other.
+// 19 + 9 -> (borrow 1) 20 + 8 = 28. Shown on a number line.
+function planCompensation(a, b, ans) {
+  const { base, other, need } = pickCompBase(a, b);
+  const rounded = base + need;
+  const other2 = other - need;
+  return {
+    kind: 'line', tip: 'Round to a friendly ten, then adjust!', min: base, max: ans,
+    frames: [
+      { say: `Let's add ${numToWords(a)} plus ${numToWords(b)}. Look — ${numToWords(base)} is really close to ${numToWords(rounded)}!`, marker: base, arcs: [] },
+      { say: `Start at ${numToWords(base)}.`, marker: base, arcs: [] },
+      { say: `Borrow ${numToWords(need)} from ${numToWords(other)} to jump up to a friendly ${numToWords(rounded)}.`, marker: rounded, arcs: [{ from: base, to: rounded, label: `+${need}` }] },
+      { say: `That leaves ${numToWords(other2)}. Now ${numToWords(rounded)} plus ${numToWords(other2)} is easy: ${numToWords(ans)}!`, marker: ans, arcs: [{ from: base, to: rounded, label: `+${need}` }, { from: rounded, to: ans, label: `+${other2}` }] },
+    ],
+  };
 }
 
 // Decomposition TREE: 17 + 7 -> 17 branches to 10 & 7, circle the ones (7+7=14), then 10 + 14 = 24.
@@ -240,44 +272,47 @@ export default function MathTutor({ a, op, b, answer, onDone }) {
   // Build the lesson once per mount (a new problem remounts this component).
   const [plan] = useState(() => buildPlan(a, op, b, answer));
   const [step, setStep] = useState(0);
-  const [finished, setFinished] = useState(false);
-  const timers = useRef([]);
+  const lastIndex = plan.frames.length - 1;
+  const isLast = step >= lastIndex;
+  // #7: the answer stays hidden until the child taps through to the FINAL step.
+  const revealAnswer = isLast;
 
-  const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = []; };
-
-  // Pace each step by the LENGTH of its line (deterministic) so it behaves the same on first play & replay.
-  const runFrom = (i) => {
-    if (i >= plan.frames.length) { setFinished(true); return; }
-    setStep(i);
-    const say = plan.frames[i].say;
-    // Chrome/Safari can leave speechSynthesis in a "paused/wedged" state after repeated
-    // cancel() calls (e.g. the 2nd+ tutorial in a session goes silent). resume() unwedges it.
+  const sayFrame = (i) => {
+    const f = plan.frames[i];
+    if (!f) return;
+    // resume() unwedges Chrome/Safari speech after repeated cancel() (2nd+ tutorial going silent).
     try { window.speechSynthesis.resume(); } catch (e) { /* ignore */ }
-    speak(say, { female: true, rate: 0.9, pitch: 1.05, volume: 1, clear: true, minGap: 0 });
-    const dur = Math.max(2900, 1100 + say.length * 80);
-    timers.current.push(setTimeout(() => runFrom(i + 1), dur));
+    speak(f.say, { female: true, rate: 0.9, pitch: 1.05, volume: 1, clear: true, minGap: 0 });
   };
 
-  const play = () => {
-    clearTimers();
-    try { window.speechSynthesis.cancel(); window.speechSynthesis.resume(); } catch (e) { /* ignore */ }
+  // Prime once; cancel any speech on unmount.
+  useEffect(() => {
     primeSpeech();
-    setFinished(false);
-    timers.current.push(setTimeout(() => runFrom(0), 300));
-  };
+    return () => { try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } };
+  }, []);
 
-  useEffect(() => { play(); return clearTimers; /* eslint-disable-next-line */ }, []);
+  // Narrate the current step whenever it changes (kid controls the pace by tapping).
+  useEffect(() => {
+    try { window.speechSynthesis.cancel(); window.speechSynthesis.resume(); } catch (e) { /* ignore */ }
+    const id = setTimeout(() => sayFrame(step), step === 0 ? 300 : 60);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
-  const ok = () => { clearTimers(); try { window.speechSynthesis.cancel(); } catch (e) {} if (onDone) onDone(); };
-  const skip = () => { clearTimers(); try { window.speechSynthesis.cancel(); } catch (e) {} setStep(plan.frames.length - 1); setFinished(true); };
+  const next = () => { if (step < lastIndex) setStep(step + 1); };
+  const replay = () => { if (step === 0) sayFrame(0); else setStep(0); };
+  const skip = () => setStep(lastIndex);
+  const ok = () => { try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } if (onDone) onDone(); };
 
   const frame = plan.frames[step] || plan.frames[0];
 
   return (
     <div style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.85)', backdropFilter: 'blur(6px)', zIndex: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Fredoka', sans-serif" }}>
       <div style={{ background: 'white', border: '5px solid #0ea5e9', borderRadius: 28, padding: 24, width: '92%', maxWidth: 560, textAlign: 'center', boxShadow: '0 20px 50px rgba(0,0,0,0.4)' }}>
-        <h2 style={{ margin: '0 0 4px 0', color: '#0369a1', fontWeight: 900, fontSize: '1.4rem' }}>🧑‍🏫 Let's learn it!</h2>
-        <div style={{ fontSize: '2rem', fontWeight: 900, color: '#1e293b', margin: '4px 0 12px 0' }}>{a} {op} {b} = {answer}</div>
+        <h2 style={{ margin: '0 0 4px 0', color: '#0369a1', fontWeight: 900, fontSize: '1.4rem' }}>🧑‍🏫 Let's learn it — tap along!</h2>
+        <div style={{ fontSize: '2rem', fontWeight: 900, color: '#1e293b', margin: '4px 0 12px 0' }}>
+          {a} {op} {b} = <span style={{ color: revealAnswer ? '#16a34a' : '#a855f7' }}>{revealAnswer ? answer : '?'}</span>
+        </div>
 
         <div style={{ minHeight: 150, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           {plan.kind === 'tree' && <TreeViz nodes={plan.nodes} edges={plan.edges} frame={frame} />}
@@ -292,13 +327,16 @@ export default function MathTutor({ a, op, b, answer, onDone }) {
           {plan.frames.map((_, i) => <span key={i} style={{ width: 10, height: 10, borderRadius: '50%', background: i <= step ? '#0ea5e9' : '#e2e8f0' }} />)}
         </div>
 
-        {finished ? (
+        {isLast ? (
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 10 }}>
-            <button onClick={play} style={{ fontFamily: 'inherit', fontWeight: 900, fontSize: '1rem', padding: '12px 22px', borderRadius: 14, border: 'none', background: '#a855f7', color: 'white', cursor: 'pointer', boxShadow: '0 4px 0 #7c3aed' }}>🔁 Replay</button>
+            <button onClick={replay} style={{ fontFamily: 'inherit', fontWeight: 900, fontSize: '1rem', padding: '12px 22px', borderRadius: 14, border: 'none', background: '#a855f7', color: 'white', cursor: 'pointer', boxShadow: '0 4px 0 #7c3aed' }}>🔁 Replay</button>
             <button onClick={ok} style={{ fontFamily: 'inherit', fontWeight: 900, fontSize: '1rem', padding: '12px 26px', borderRadius: 14, border: 'none', background: '#22c55e', color: 'white', cursor: 'pointer', boxShadow: '0 4px 0 #16a34a' }}>👍 OK, got it!</button>
           </div>
         ) : (
-          <button onClick={skip} style={{ marginTop: 10, fontFamily: 'inherit', fontWeight: 900, fontSize: '1rem', padding: '12px 22px', borderRadius: 14, border: 'none', background: '#64748b', color: 'white', cursor: 'pointer', boxShadow: '0 4px 0 #475569' }}>⏭️ Skip</button>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 10 }}>
+            <button onClick={skip} style={{ fontFamily: 'inherit', fontWeight: 800, fontSize: '0.95rem', padding: '12px 18px', borderRadius: 14, border: 'none', background: '#64748b', color: 'white', cursor: 'pointer', boxShadow: '0 4px 0 #475569' }}>⏭️ Skip</button>
+            <button onClick={next} style={{ fontFamily: 'inherit', fontWeight: 900, fontSize: '1.05rem', padding: '12px 30px', borderRadius: 14, border: 'none', background: '#0ea5e9', color: 'white', cursor: 'pointer', boxShadow: '0 4px 0 #0284c7' }}>👉 Next step</button>
+          </div>
         )}
       </div>
     </div>
