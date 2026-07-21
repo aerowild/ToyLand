@@ -234,3 +234,56 @@ export function generateStageParams(stageNum) {
   } catch (e) { /* fall through to base */ }
   return base; // safe fallback: the deterministic (always-valid) config
 }
+
+/* ============================================================================
+ * PREDEFINED COMBINATION OPTIONS for additive puzzles (bridge/hill/electricity).
+ * Instead of freeform "Add N" accumulation, the child picks a whole combination
+ * that makes the target in <=3 friendly steps. Returns a shuffled list of
+ * { parts:[...], sum, correct } — 2-3 CORRECT (sum===target) + several WRONG
+ * (plausible near-misses that DON'T sum to target). Works for any target.
+ * ==========================================================================*/
+export function getComboOptions(target) {
+  const t = Math.max(2, Math.round(target));
+  const tens = Math.floor(t / 10), rem = t % 10;
+  const byKey = new Map();
+  const keyOf = (parts) => parts.slice().sort((x, y) => x - y).join('+');
+  const put = (parts, correct) => {
+    const p = parts.filter((n) => n > 0);
+    if (p.length < 2 || p.length > 3) return;      // real combinations only (2-3 parts)
+    const sum = p.reduce((s, n) => s + n, 0);
+    if (correct && sum !== t) return;
+    const k = keyOf(p);
+    if (!byKey.has(k)) byKey.set(k, { parts: p, sum, correct });
+  };
+
+  // ---- correct combinations (sum === t) ----
+  { const p = []; for (let i = 0; i < tens; i++) p.push(10); if (rem) p.push(rem); put(p, true); } // 10+10+3
+  if (t > 10) put([t - 10, 10], true);                       // 13+10
+  if (rem > 0) put([t - rem, rem], true);                    // 20+3
+  { const h = Math.round(t / 2); put([h, t - h], true); }    // near-half split (small targets)
+  if (t > 2) put([t - 2, 2], true);
+  put([t - 1, 1], true);
+  if (t > 3) put([t - 3, 3], true);
+  let correct = [...byKey.values()].filter((o) => o.correct).slice(0, 3);
+
+  // ---- wrong combinations (sum !== t, look plausible) ----
+  const seen = new Set(correct.map((o) => keyOf(o.parts)));
+  const wrong = [];
+  const tryWrong = (parts) => {
+    const p = parts.filter((n) => n > 0);
+    if (p.length < 2 || p.length > 3) return;
+    const sum = p.reduce((s, n) => s + n, 0);
+    const k = keyOf(p);
+    if (sum !== t && !seen.has(k)) { seen.add(k); wrong.push({ parts: p, sum, correct: false }); }
+  };
+  tryWrong([10 * tens, rem + 1]);        tryWrong([t - 10, 9]);
+  tryWrong([tens * 10 + 1, rem]);        tryWrong([t - rem, rem + 1]);
+  tryWrong([Math.round(t / 2), t - Math.round(t / 2) + 2]);
+  tryWrong([t - 1, 2]);                  tryWrong([t - 3, 2]);
+  tryWrong([2, t]);                      tryWrong([10, t - 9]);
+  const w = wrong.slice(0, 3);
+
+  const all = correct.concat(w);
+  for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [all[i], all[j]] = [all[j], all[i]]; }
+  return all;
+}

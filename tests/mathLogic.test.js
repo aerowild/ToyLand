@@ -3,7 +3,7 @@
 //  (A) every 3D stage's target is reachable from its static clicks, and
 //  (B) every adaptive runner problem is arithmetically correct and well-formed.
 import { describe, it, expect } from 'vitest';
-import { getStageParams, generateStageParams } from '../src/utils/mathQuestState.js';
+import { getStageParams, generateStageParams, getComboOptions } from '../src/utils/mathQuestState.js';
 import { getAdaptiveProblem, SKILLS, misconceptionDistractors } from '../src/utils/profileStore.js';
 import distractorBank from '../src/utils/distractorBank.json';
 
@@ -68,6 +68,33 @@ describe('3D stage RANDOMIZED variants (generateStageParams)', () => {
         expect(p.type).toBe(type);   // type/difficulty preserved
         assertValidStage(p);
       }
+    });
+  }
+});
+
+describe('combination options (getComboOptions)', () => {
+  for (let t = 5; t <= 42; t++) {
+    it(`target ${t}: >=2 correct + >=2 wrong, all well-formed`, () => {
+      const opts = getComboOptions(t);
+      const correct = opts.filter((o) => o.correct);
+      const wrong = opts.filter((o) => !o.correct);
+      expect(correct.length).toBeGreaterThanOrEqual(2);
+      expect(wrong.length).toBeGreaterThanOrEqual(2);
+      correct.forEach((o) => {
+        expect(o.parts.length).toBeGreaterThanOrEqual(2);
+        expect(o.parts.length).toBeLessThanOrEqual(3);       // <=3 steps
+        expect(o.parts.every((n) => n > 0)).toBe(true);
+        expect(o.parts.reduce((s, n) => s + n, 0)).toBe(t);  // correct really sums to target
+      });
+      wrong.forEach((o) => {
+        expect(o.parts.length).toBeGreaterThanOrEqual(2);
+        expect(o.parts.length).toBeLessThanOrEqual(3);
+        expect(o.parts.every((n) => n > 0)).toBe(true);
+        expect(o.parts.reduce((s, n) => s + n, 0)).not.toBe(t); // wrong must NOT sum to target
+      });
+      // no duplicate option shapes
+      const keys = opts.map((o) => o.parts.slice().sort((x, y) => x - y).join('+'));
+      expect(new Set(keys).size).toBe(keys.length);
     });
   }
 });
