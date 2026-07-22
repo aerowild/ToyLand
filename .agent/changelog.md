@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-07-21 (3D stage bug fixes — reported + review)
+- **CRITICAL: combo cards killed the hero on a CORRECT pick** (bridge/hill). `chooseCombo`'s delayed `checkAnswer()` read a STALE `currentValue` closure (pre-build value) → judged a correct combo wrong → fail animation. Fixed: check runs via an effect with the fresh value; added a re-entry lock (`comboBusy`) so a second tap can't corrupt the build; made block placement functional so all parts render. Verified end-to-end (target 11, "10+1" → win).
+- **Milestone chest blocked progression** (stages 4/8/12/16/20): Next/Run buttons were hidden behind an unopened chest, leaving only a red "✕ Go Home" — looked like the game sent you home after stage 4. Chest is now an optional bonus (never blocks); relabeled the button to a muted "🏠 Home".
+- Polished bridge/hill instruction → "Pick the combo that makes N!" (combo mode auto-checks).
+- Full review: 89 math-logic tests pass; 0 console/page errors across all 24 stages.
+
 ## 2026-07-21 (gameplay/UX batch: 7 fixes + features)
 - **Stage-complete card overflow fixed:** completion overlay z-index raised above drei `<Html>` default (~16.7M) so 3D number-line labels no longer float over/outside the card.
 - **Timed fluency:** small facts (both operands & answer ≤10) now auto-get a 6s timer; the revive/lifesaver quiz is timed (10s).
