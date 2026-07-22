@@ -2263,6 +2263,8 @@ export default function MathQuest3D({
     const [currentValue, setCurrentValue] = useState(puzzleType === 'sub_bridge' ? start : 0);
     const [feedback, setFeedback] = useState({ text: '', type: '' });
     const [isAnimating, setIsAnimating] = useState(false);
+    const [comboBusy, setComboBusy] = useState(false); // locks combo cards while a pick builds
+    const comboArmedRef = useRef(false);               // fires checkAnswer with FRESH currentValue
     const [emitterTrigger, setEmitterTrigger] = useState(0);
 
     // Animating states for character wiggles
@@ -2451,13 +2453,24 @@ export default function MathQuest3D({
     // Combo card picked: rebuild from scratch and place each part (staggered so React state
     // settles between blocks), then auto-check. Correct combo wins; wrong shows feedback.
     const chooseCombo = (option) => {
-        if (isAnimating) return;
+        if (isAnimating || comboBusy) return;
+        setComboBusy(true);            // lock the cards during the build
         resetLevel();
         playSound('click');
         const parts = option.parts;
+        // Place each part on its own tick (functional state updates accumulate correctly).
         parts.forEach((p, i) => { setTimeout(() => addBlock(p), 260 * (i + 1)); });
-        setTimeout(() => checkAnswer(), 260 * (parts.length + 1) + 220);
+        // Arm the check; the effect below runs checkAnswer with the CURRENT (fresh) value,
+        // not a stale setTimeout closure (which previously killed the hero on a correct combo).
+        setTimeout(() => { comboArmedRef.current = true; setComboBusy(false); }, 260 * (parts.length + 1) + 300);
     };
+
+    // Run the win/lose check once a combo finished building — reads the up-to-date currentValue.
+    useEffect(() => {
+        if (comboBusy) return;
+        if (comboArmedRef.current) { comboArmedRef.current = false; checkAnswer(); }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [comboBusy]);
 
     // Pedagogical scaffolding reset: keep blocks and just return Hero to start
     const resetHeroPosition = () => {
@@ -2671,7 +2684,7 @@ export default function MathQuest3D({
                     color: getColorForValue(val),
                     label: val.toString()
                 };
-                setPlacedBlocks([...placedBlocks, newBlock]);
+                setPlacedBlocks(prev => [...prev, newBlock]);
                 blockX.current += blockWidth;
                 setCurrentValue(c => c + val);
                 emitter.spawn(new THREE.Vector3(xPos, 1.65, 0), 8, newBlock.color);
@@ -2733,7 +2746,7 @@ export default function MathQuest3D({
                     color: getColorForValue(val),
                     label: val.toString()
                 };
-                setPlacedBlocks([...placedBlocks, newBlock]);
+                setPlacedBlocks(prev => [...prev, newBlock]);
                 currentStairY.current += blockH;
                 blockX.current += 0.6;
                 setCurrentValue(c => c + val);
@@ -2902,7 +2915,7 @@ export default function MathQuest3D({
                         gridH: bh
                     };
 
-                    setPlacedBlocks([...placedBlocks, newBlock]);
+                    setPlacedBlocks(prev => [...prev, newBlock]);
                     setCurrentValue(c => c + bw * bh);
                     placed = true;
                     playSound('pop');
@@ -3653,7 +3666,7 @@ export default function MathQuest3D({
                                         key={idx}
                                         className="bubble-btn"
                                         onClick={() => chooseCombo(opt)}
-                                        disabled={isAnimating}
+                                        disabled={isAnimating || comboBusy}
                                         style={{
                                             ...btnStyle,
                                             minWidth: 120,
