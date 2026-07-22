@@ -9,6 +9,29 @@ import MathTutor from './MathTutor';
 import { FEATURE_NAMES, getRandomPraise } from '../utils/mathQuestState';
 import { playSound, playCrash, playPowerup, playCoinPitch, playTick, speakPedestrian, speakEquation, speak, primeSpeech, startBackgroundMusic, stopBackgroundMusic } from '../utils/sound';
 import { getAdaptiveProblem, recordPuzzleResult } from '../utils/profileStore';
+import storyContent from '../utils/storyContent.json';
+
+// Skippable story cards: auto-advance one kid-safe line every ~2.2s, then onDone. Tap Skip anytime.
+function StoryCards({ lines, onDone, emoji = '🌀', accent = '#a855f7' }) {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (!lines || !lines.length) { onDone(); return; }
+    const id = setTimeout(() => { if (i < lines.length - 1) setI(i + 1); else onDone(); }, 2300);
+    return () => clearTimeout(id);
+  }, [i, lines, onDone]);
+  if (!lines || !lines.length) return null;
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 80, background: 'rgba(10,6,24,0.92)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: "'Fredoka',sans-serif", textAlign: 'center', padding: 24 }}>
+      <div style={{ fontSize: '4rem', marginBottom: 12, animation: 'bounce 1s ease-in-out infinite' }}>{emoji}</div>
+      <div key={i} style={{ color: '#fff', fontWeight: 900, fontSize: '1.5rem', maxWidth: 560, textShadow: '0 2px 10px rgba(124,58,237,0.7)', animation: 'slideDownIn 0.4s ease' }}>{lines[i]}</div>
+      <div style={{ display: 'flex', gap: 7, marginTop: 18 }}>
+        {lines.map((_, k) => <span key={k} style={{ width: 10, height: 10, borderRadius: '50%', background: k <= i ? accent : 'rgba(255,255,255,0.3)' }} />)}
+      </div>
+      <button onClick={onDone} style={{ marginTop: 26, fontFamily: 'inherit', fontWeight: 900, fontSize: '1rem', padding: '10px 24px', borderRadius: 999, border: '2px solid rgba(255,255,255,0.5)', background: 'rgba(255,255,255,0.12)', color: '#fff', cursor: 'pointer' }}>Skip ▶</button>
+    </div>
+  );
+}
+
 
 const LANES = [-1.8, 0, 1.8];
 const RUN_Z = 0;            // character z
@@ -617,6 +640,8 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
   const [, force] = useState(0);
   const [phase, setPhase] = useState('intro'); // intro, run, puzzle, dead, done, checkpoint, celebrate
   const [celebrateCount, setCelebrateCount] = useState(0);
+  const [showIntroStory, setShowIntroStory] = useState(true); // skippable start-of-mission story
+  const [portalStory, setPortalStory] = useState(false);      // skippable portal-dive animation
   const [hud, setHud] = useState({ coins: 0, distance: 0, shields: 0 });
   const [puzzle, setPuzzle] = useState(null); // { reason: 'teleporter' | 'revive' }
   const earnedRef = useRef([]); // feature idxs earned this run
@@ -733,6 +758,7 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
         if (!e.paused && e.distance >= e.nextCheckpoint) {
           e.paused = true;
           playSound('chime');
+          setPortalStory(true);
           setPhase('checkpoint');
         }
         e._hudClock += 1;
@@ -910,6 +936,10 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', background: '#0b1026', overflow: 'hidden' }}>
+      {/* Skippable start-of-mission story (Robin's quest) — shows once before the run */}
+      {showIntroStory && (
+        <StoryCards lines={storyContent.beats && storyContent.beats.intro} onDone={() => setShowIntroStory(false)} emoji="🤖" />
+      )}
       {/* Runner canvas. Unmounted during the checkpoint level so only ONE WebGL
           context is ever live at a time (two simultaneous contexts can make the
           browser drop one → black screen). It remounts (rebuilt from engine refs)
@@ -947,11 +977,17 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
         </div>
       )}
 
+      {/* Skippable portal-dive animation shown as the boss stage loads */}
+      {phase === 'checkpoint' && portalStory && (
+        <StoryCards lines={storyContent.beats && storyContent.beats.portalEnter} onDone={() => setPortalStory(false)} emoji="🌀" />
+      )}
+
       {/* CELEBRATE: checkpoint saved + countdown back to running */}
       {phase === 'celebrate' && (
         <div style={{ position: 'absolute', inset: 0, zIndex: 65, background: 'rgba(15,23,42,0.55)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: "'Fredoka',sans-serif", pointerEvents: 'none' }}>
           <div style={{ fontSize: '4rem' }}>🎉🏁🎉</div>
           <div style={{ color: '#fde047', fontWeight: 900, fontSize: '2rem', textShadow: '0 3px 8px rgba(0,0,0,0.5)' }}>🎉 Friend Freed!</div>
+          <div style={{ color: '#c4b5fd', fontWeight: 700, fontSize: '1rem', marginTop: 4, textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>{(storyContent.beats && storyContent.beats.defeat && storyContent.beats.defeat[0]) || 'The gloom-bot poofed away!'}</div>
           <div style={{ color: '#fff', fontWeight: 700, fontSize: '1.1rem', marginTop: 6, textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>+20 🪙 &nbsp; +1 🛡️ &nbsp; ⚡ Faster forever!</div>
           <div style={{ color: '#fff', fontWeight: 800, fontSize: '1rem', marginTop: 18, textShadow: '0 2px 6px rgba(0,0,0,0.5)' }}>Back to the run in…</div>
           <div style={{ marginTop: 8, width: 110, height: 110, lineHeight: '110px', textAlign: 'center', borderRadius: '50%', background: 'linear-gradient(135deg,#22c55e,#16a34a)', border: '5px solid #fff', color: '#fff', fontWeight: 900, fontSize: '3.6rem', boxShadow: '0 10px 30px rgba(22,163,74,0.6)' }}>

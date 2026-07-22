@@ -166,5 +166,22 @@
 "Now I get to be your friend!",
 "Counting is so much fun with friends!",
 "I'm ready to solve puzzles now!"
+],
+"beats": {
+"intro": [
+"Robin races through the glowing tunnel",
+"A shimmering portal awaits with a soft hum",
+"Time is ticking fast to save their friend"
+],
+"portalEnter": [
+"Whoosh! Robin dives into the sparkly door",
+"Through the wormhole they zoom and soar",
+"The adventure begins in a magical place"
+],
+"defeat": [
+"Robin solves all the math with a grin",
+"The gloom-bot disappears like morning mist",
+"Back through the portal they dash to safety"
 ]
+}
 }
