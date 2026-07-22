@@ -5,7 +5,7 @@ import { Line, Stars, Cloud, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import gsap from 'gsap';
 import Hero3D from './Hero3D';
-import { getStageParams, generateStageParams, COLORS, FEATURE_NAMES, getRandomPraise, getHint, calculateStars } from '../utils/mathQuestState';
+import { getStageParams, generateStageParams, getComboOptions, COLORS, FEATURE_NAMES, getRandomPraise, getHint, calculateStars } from '../utils/mathQuestState';
 import storyContent from '../utils/storyContent.json';
 import { playSound, playStreakComboSound, startCalmMusic, stopCalmMusic } from '../utils/sound';
 
@@ -2245,6 +2245,8 @@ export default function MathQuest3D({
         : randomizedParams;
 
     const { type: puzzleType, target, start, clicks, pieces, sequence } = params;
+    // Predefined combination options for additive (bridge/hill) puzzles.
+    const comboOptions = useMemo(() => getComboOptions(target || 10), [target, stageNum, sandboxMode]);
     const stairTotalHeight = 3.0;
 
     const activeTimelineRef = useRef(null);
@@ -2444,6 +2446,17 @@ export default function MathQuest3D({
         if (puzzleType === 'area') {
             setAreaGrid(Array.from({ length: areaH }, () => Array(areaW).fill(false)));
         }
+    };
+
+    // Combo card picked: rebuild from scratch and place each part (staggered so React state
+    // settles between blocks), then auto-check. Correct combo wins; wrong shows feedback.
+    const chooseCombo = (option) => {
+        if (isAnimating) return;
+        resetLevel();
+        playSound('click');
+        const parts = option.parts;
+        parts.forEach((p, i) => { setTimeout(() => addBlock(p), 260 * (i + 1)); });
+        setTimeout(() => checkAnswer(), 260 * (parts.length + 1) + 220);
     };
 
     // Pedagogical scaffolding reset: keep blocks and just return Hero to start
@@ -3633,25 +3646,24 @@ export default function MathQuest3D({
                         </>
                     ) : (
                         <>
-                            {clicks.map((val, idx) => {
-                                const absV = Math.abs(val);
-                                const bg = getColorForValue(absV);
-                                const fg = getTextColorForBackground(bg);
+                            {comboOptions.map((opt, idx) => {
+                                const label = opt.parts.join(' + ');
                                 return (
                                     <button
                                         key={idx}
                                         className="bubble-btn"
-                                        onClick={() => addBlock(val)}
+                                        onClick={() => chooseCombo(opt)}
                                         disabled={isAnimating}
                                         style={{
                                             ...btnStyle,
-                                            background: bg,
-                                            color: fg,
-                                            borderColor: bg,
-                                            boxShadow: `0 4px 0 ${bg}88`
+                                            minWidth: 120,
+                                            background: '#eef2ff',
+                                            color: '#3730a3',
+                                            borderColor: '#6366f1',
+                                            boxShadow: '0 4px 0 #6366f188'
                                         }}
                                     >
-                                        {val > 0 ? `➕ Add ${val}` : `🎈 Lift ${absV}`}
+                                        🧩 {label}
                                     </button>
                                 );
                             })}
