@@ -3733,7 +3733,8 @@ export default function MathQuest3D({
                 const multiplier = 1 + Math.min(4, Math.max(0, (comboStreak - 1) * 0.2));
                 const multipliedCoins = Math.floor(baseCoins * multiplier);
                 const showChest = !sandboxMode && !checkpointMode && (stageNum % 4 === 0);
-                const canProgress = !showChest || chestState === 'opened';
+                const canProgress = true; // milestone chest is an OPTIONAL bonus — never blocks progression
+                                          // (previously hid Next/Run buttons behind an unopened chest, leaving only "Go Home")
                 const finalStarsEarned = multipliedCoins + bonusStars + (chestStarsClaimed ? 20 : 0);
 
                 return (
@@ -4092,20 +4093,23 @@ export default function MathQuest3D({
                                 )}
 
                                 <button 
-                                    className="bubble-btn danger"
+                                    className="bubble-btn"
                                     onClick={() => {
                                         playSound('click');
                                         onLevelComplete(finalStarsEarned, 'dashboard', comboStreak);
                                         setIsLevelCleared(false);
                                     }}
                                     style={{
-                                        fontSize: '1.05rem',
-                                        padding: '10px',
+                                        fontSize: '0.95rem',
+                                        padding: '9px',
                                         width: '100%',
-                                        fontWeight: '700'
+                                        fontWeight: '700',
+                                        background: '#f1f5f9',
+                                        color: '#475569',
+                                        borderColor: '#cbd5e1'
                                     }}
                                 >
-                                    ✕ Go Home
+                                    🏠 Home
                                 </button>
                             </div>
                         </div>
