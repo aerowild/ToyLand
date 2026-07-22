@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-07-22 (3D review follow-ups)
+- **Non-revealing feedback:** wrong-answer messages are now directional only ("A bit too big — try again!" / "So close — try again!"; area/fraction/sub_bridge/pattern variants) — they no longer print the exact remaining amount, so the child can't converge without doing the math.
+- **Electricity → combination cards:** the Balance/voltage stage now uses the same predefined combo cards as bridge/hill (consistency).
+- **Hid the redundant Check Answer button** on combo puzzles (bridge/hill/electricity) — they auto-check when a card is picked.
+
 ## 2026-07-21 (3D stage bug fixes — reported + review)
 - **CRITICAL: combo cards killed the hero on a CORRECT pick** (bridge/hill). `chooseCombo`'s delayed `checkAnswer()` read a STALE `currentValue` closure (pre-build value) → judged a correct combo wrong → fail animation. Fixed: check runs via an effect with the fresh value; added a re-entry lock (`comboBusy`) so a second tap can't corrupt the build; made block placement functional so all parts render. Verified end-to-end (target 11, "10+1" → win).
 - **Milestone chest blocked progression** (stages 4/8/12/16/20): Next/Run buttons were hidden behind an unopened chest, leaving only a red "✕ Go Home" — looked like the game sent you home after stage 4. Chest is now an optional bonus (never blocks); relabeled the button to a muted "🏠 Home".
