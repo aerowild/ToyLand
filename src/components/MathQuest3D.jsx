@@ -2507,39 +2507,23 @@ export default function MathQuest3D({
         const newAttempts = attemptCount + 1;
         setAttemptCount(newAttempts);
         
-        // Get a helpful hint based on puzzle type and attempt number
+        // Get a helpful hint based on puzzle type and attempt number.
+        // IMPORTANT: give only DIRECTION (more / less), never the exact remaining number —
+        // otherwise the child can converge on the answer without doing the math.
         const hint = getHint(puzzleType, newAttempts - 1);
-        const diff = target - currentValue;
+        const over = currentValue > target; // placed/counted too much
 
         if (puzzleType === 'sub_bridge') {
-            const currentDiff = currentValue - target;
-            if (currentDiff > 0) {
-                setFeedback({ text: `Oops! Cut ${currentDiff} more. 💡 ${hint}`, type: 'danger' });
-            } else {
-                setFeedback({ text: `Too much! Add some back. 💡 ${hint}`, type: 'danger' });
-            }
+            setFeedback({ text: over ? `Not quite — cut a little more! 💡 ${hint}` : `Oops, cut too much — add some back! 💡 ${hint}`, type: 'danger' });
         } else if (puzzleType === 'area') {
-            if (diff > 0) {
-                setFeedback({ text: `Need ${diff} more squares! 💡 ${hint}`, type: 'danger' });
-            } else {
-                setFeedback({ text: `Too many! Tap a block to remove it. 💡 ${hint}`, type: 'danger' });
-            }
+            setFeedback({ text: over ? `Too many — take a block off! 💡 ${hint}` : `Almost — add a few more squares! 💡 ${hint}`, type: 'danger' });
         } else if (puzzleType === 'fraction') {
-            const targetSlices = target * pieces;
-            const diffFrac = targetSlices - currentValue;
-            if (diffFrac > 0) {
-                setFeedback({ text: `Need ${diffFrac} more slices! 💡 ${hint}`, type: 'danger' });
-            } else {
-                setFeedback({ text: `Too many slices! 💡 ${hint}`, type: 'danger' });
-            }
+            const overF = currentValue > target * pieces;
+            setFeedback({ text: overF ? `Too many slices — uncolor some! 💡 ${hint}` : `Not quite — color a few more! 💡 ${hint}`, type: 'danger' });
         } else if (puzzleType === 'pattern') {
-            setFeedback({ text: `Wrong shape! 💡 ${hint}`, type: 'danger' });
+            setFeedback({ text: `Not that shape — look at the pattern again! 💡 ${hint}`, type: 'danger' });
         } else {
-            if (diff > 0) {
-                setFeedback({ text: `Need ${diff} more! Keep trying! 💡 ${hint}`, type: 'danger' });
-            } else {
-                setFeedback({ text: `Too much by ${Math.abs(diff)}! Tap blocks to remove. 💡 ${hint}`, type: 'danger' });
-            }
+            setFeedback({ text: over ? `A bit too big — try again! 💡 ${hint}` : `So close — try again! 💡 ${hint}`, type: 'danger' });
         }
     };
 
@@ -2567,7 +2551,7 @@ export default function MathQuest3D({
         } else if (puzzleType === 'area') {
             prompt = fresh ? 'Fill the grid, then tap ✨ Check Answer! 📦'
                            : 'Tap ✨ Check Answer when the grid is full!';
-        } else if (puzzleType === 'bridge' || puzzleType === 'hill') {
+        } else if (puzzleType === 'bridge' || puzzleType === 'hill' || puzzleType === 'electricity') {
             prompt = `Pick the combo that makes ${target}! 🧩`;
         } else {
             prompt = fresh ? 'Work it out in your head, then tap ✨ Check Answer!'
@@ -3636,25 +3620,17 @@ export default function MathQuest3D({
                         </>
                     ) : puzzleType === 'electricity' ? (
                         <>
-                            {clicks.map((val, idx) => {
-                                const absV = Math.abs(val);
-                                const bg = getColorForValue(absV);
-                                const fg = getTextColorForBackground(bg);
+                            {comboOptions.map((opt, idx) => {
+                                const label = opt.parts.join(' + ');
                                 return (
                                     <button
                                         key={idx}
                                         className="bubble-btn"
-                                        onClick={() => addBlock(val)}
-                                        disabled={isAnimating}
-                                        style={{
-                                            ...btnStyle,
-                                            background: bg,
-                                            color: fg,
-                                            borderColor: bg,
-                                            boxShadow: `0 4px 0 ${bg}88`
-                                        }}
+                                        onClick={() => chooseCombo(opt)}
+                                        disabled={isAnimating || comboBusy}
+                                        style={{ ...btnStyle, minWidth: 120, background: '#eef2ff', color: '#3730a3', borderColor: '#6366f1', boxShadow: '0 4px 0 #6366f188' }}
                                     >
-                                        {val > 0 ? `⚡ Power ${val}V` : `🎈 Drain ${absV}V`}
+                                        ⚡ {label}
                                     </button>
                                 );
                             })}
@@ -3711,6 +3687,9 @@ export default function MathQuest3D({
                             </button>
                         )}
                     </div>
+                    {/* Combo puzzles (bridge/hill/electricity) auto-check when a card is picked,
+                        so the manual Check Answer button is hidden for them. */}
+                    {!(puzzleType === 'bridge' || puzzleType === 'hill' || puzzleType === 'electricity') && (
                     <button
                         className="bubble-btn success"
                         onClick={checkAnswer}
@@ -3727,6 +3706,7 @@ export default function MathQuest3D({
                     >
                         ✨ Check Answer!
                     </button>
+                    )}
                 </div>
             </div>
             {isLevelCleared && (() => {
