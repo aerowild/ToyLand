@@ -2567,6 +2567,8 @@ export default function MathQuest3D({
         } else if (puzzleType === 'area') {
             prompt = fresh ? 'Fill the grid, then tap ✨ Check Answer! 📦'
                            : 'Tap ✨ Check Answer when the grid is full!';
+        } else if (puzzleType === 'bridge' || puzzleType === 'hill') {
+            prompt = `Pick the combo that makes ${target}! 🧩`;
         } else {
             prompt = fresh ? 'Work it out in your head, then tap ✨ Check Answer!'
                            : 'Tap ✨ Check Answer when you think it\'s right!';
