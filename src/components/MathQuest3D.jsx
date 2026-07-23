@@ -2265,6 +2265,7 @@ export default function MathQuest3D({
     const [isAnimating, setIsAnimating] = useState(false);
     const [comboBusy, setComboBusy] = useState(false); // locks combo cards while a pick builds
     const comboArmedRef = useRef(false);               // fires checkAnswer with FRESH currentValue
+    const [comboFound, setComboFound] = useState([]);  // indices of CORRECT combos already found
     const [emitterTrigger, setEmitterTrigger] = useState(0);
 
     // Animating states for character wiggles
@@ -2403,6 +2404,7 @@ export default function MathQuest3D({
             activeTimelineRef.current = null;
         }
         setPlacedBlocks([]);
+        setComboFound([]);
         const initVal = puzzleType === 'sub_bridge' ? start : 0;
         setCurrentValue(initVal);
         setFeedback({ text: '', type: '' });
@@ -2451,21 +2453,32 @@ export default function MathQuest3D({
     };
 
     // Combo card picked: rebuild from scratch and place each part (staggered so React state
-    // settles between blocks), then auto-check. Correct combo wins; wrong shows feedback.
-    const chooseCombo = (option) => {
+    // Multi-select: the child must find ALL correct combinations. Each correct pick is banked;
+    // a wrong pick just warns (no progress). When every correct combo is found, build & win.
+    const pickCombo = (option, idx) => {
         if (isAnimating || comboBusy) return;
-        setComboBusy(true);            // lock the cards during the build
-        resetLevel();
-        playSound('click');
-        const parts = option.parts;
-        // Place each part on its own tick (functional state updates accumulate correctly).
-        parts.forEach((p, i) => { setTimeout(() => addBlock(p), 260 * (i + 1)); });
-        // Arm the check; the effect below runs checkAnswer with the CURRENT (fresh) value,
-        // not a stale setTimeout closure (which previously killed the hero on a correct combo).
-        setTimeout(() => { comboArmedRef.current = true; setComboBusy(false); }, 260 * (parts.length + 1) + 300);
+        if (!option.correct) {
+            playSound('buzz');
+            setFeedback({ text: `That one doesn't make ${target} — try another! 💡`, type: 'danger' });
+            return;
+        }
+        if (comboFound.includes(idx)) return; // already found
+        const nextFound = [...comboFound, idx];
+        setComboFound(nextFound);
+        playSound('pop');
+        const correctTotal = comboOptions.filter((o) => o.correct).length;
+        if (nextFound.length >= correctTotal) {
+            // All correct combinations found → build the bridge to target and win.
+            setComboBusy(true);
+            resetLevel();
+            setTimeout(() => addBlock(target), 260);
+            setTimeout(() => { comboArmedRef.current = true; setComboBusy(false); }, 640);
+        } else {
+            setFeedback({ text: `Great! Found ${nextFound.length} of ${correctTotal} — keep going!`, type: 'success' });
+        }
     };
 
-    // Run the win/lose check once a combo finished building — reads the up-to-date currentValue.
+    // Run the win check once the winning build finished — reads the up-to-date currentValue.
     useEffect(() => {
         if (comboBusy) return;
         if (comboArmedRef.current) { comboArmedRef.current = false; checkAnswer(); }
@@ -2552,7 +2565,7 @@ export default function MathQuest3D({
             prompt = fresh ? 'Fill the grid, then tap ✨ Check Answer! 📦'
                            : 'Tap ✨ Check Answer when the grid is full!';
         } else if (puzzleType === 'bridge' || puzzleType === 'hill' || puzzleType === 'electricity') {
-            prompt = `Pick the combo that makes ${target}! 🧩`;
+            prompt = `Find ALL the ways to make ${target}! 🧩`;
         } else {
             prompt = fresh ? 'Work it out in your head, then tap ✨ Check Answer!'
                            : 'Tap ✨ Check Answer when you think it\'s right!';
@@ -3626,11 +3639,11 @@ export default function MathQuest3D({
                                     <button
                                         key={idx}
                                         className="bubble-btn"
-                                        onClick={() => chooseCombo(opt)}
-                                        disabled={isAnimating || comboBusy}
-                                        style={{ ...btnStyle, minWidth: 120, background: '#eef2ff', color: '#3730a3', borderColor: '#6366f1', boxShadow: '0 4px 0 #6366f188' }}
+                                        onClick={() => pickCombo(opt, idx)}
+                                        disabled={isAnimating || comboBusy || comboFound.includes(idx)}
+                                        style={{ ...btnStyle, minWidth: 120, ...(comboFound.includes(idx) ? { background: '#22c55e', color: '#fff', borderColor: '#16a34a', boxShadow: '0 4px 0 #15803d' } : { background: '#eef2ff', color: '#3730a3', borderColor: '#6366f1', boxShadow: '0 4px 0 #6366f188' }) }}
                                     >
-                                        ⚡ {label}
+                                        {comboFound.includes(idx) ? '✓ ' : '⚡ '}{label}
                                     </button>
                                 );
                             })}
@@ -3643,18 +3656,17 @@ export default function MathQuest3D({
                                     <button
                                         key={idx}
                                         className="bubble-btn"
-                                        onClick={() => chooseCombo(opt)}
-                                        disabled={isAnimating || comboBusy}
+                                        onClick={() => pickCombo(opt, idx)}
+                                        disabled={isAnimating || comboBusy || comboFound.includes(idx)}
                                         style={{
                                             ...btnStyle,
                                             minWidth: 120,
-                                            background: '#eef2ff',
-                                            color: '#3730a3',
-                                            borderColor: '#6366f1',
-                                            boxShadow: '0 4px 0 #6366f188'
+                                            ...(comboFound.includes(idx)
+                                                ? { background: '#22c55e', color: '#fff', borderColor: '#16a34a', boxShadow: '0 4px 0 #15803d' }
+                                                : { background: '#eef2ff', color: '#3730a3', borderColor: '#6366f1', boxShadow: '0 4px 0 #6366f188' })
                                         }}
                                     >
-                                        🧩 {label}
+                                        {comboFound.includes(idx) ? `✓ ${label}` : `🧩 ${label}`}
                                     </button>
                                 );
                             })}
