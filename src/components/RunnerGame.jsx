@@ -58,7 +58,14 @@ function QuizModal({ title, subtitle, level, onSolved, onFailed, accent = '#a855
   const [problem] = useState(() => getAdaptiveProblem(level));
   // Small facts (both operands & the answer within 10) are drilled UNDER TIME PRESSURE for
   // fluency, even when the caller passed no timeLimit.
-  const effTimeLimit = timeLimit || ((problem.a <= 10 && problem.b <= 10 && problem.answer <= 10) ? 6 : 0);
+  // Timed events scale with difficulty; big additions get NO timer (too hard under pressure).
+  // <=10 → 6s, 11-15 → 9s, 16-20 → 12s, and ANY addition above 20 (or magnitude >20) is untimed.
+  const _mag = Math.max(problem.a, problem.b, problem.answer);
+  const effTimeLimit = (problem.op === '+' && _mag > 20) ? 0
+    : _mag <= 10 ? 6
+      : _mag <= 15 ? 9
+        : _mag <= 20 ? 12
+          : 0;
   const [picked, setPicked] = useState(null);
   const [result, setResult] = useState(null); // 'right' | 'wrong'
   const [timeLeft, setTimeLeft] = useState(effTimeLimit);
