@@ -193,5 +193,31 @@ export function getStats() {
     skills,
     easiest: skills.filter((s) => s.status === 'mastered').map((s) => s.label),
     hardest: skills.filter((s) => s.status === 'needs-help').map((s) => s.label),
+    highScore: p.highScore || 0,
   };
+}
+
+// --- Scoring + per-profile high score + leaderboard ---
+// Record a session score for the active profile; updates the high score if beaten.
+export function recordScore(score) {
+  const d = getStore();
+  const p = d.activeId && d.profiles[d.activeId];
+  if (!p) return { highScore: 0, isNew: false };
+  const prev = p.highScore || 0;
+  const isNew = score > prev;
+  if (isNew) { p.highScore = score; save(d); }
+  return { highScore: Math.max(prev, score), isNew };
+}
+
+export function getHighScore() {
+  const p = getActiveProfile();
+  return p ? (p.highScore || 0) : 0;
+}
+
+// All profiles ranked by high score (for the leaderboard).
+export function getLeaderboard() {
+  const d = getStore();
+  return Object.values(d.profiles)
+    .map((p) => ({ id: p.id, name: p.name, avatar: p.avatar, highScore: p.highScore || 0 }))
+    .sort((a, b) => b.highScore - a.highScore);
 }

@@ -8,7 +8,7 @@ import MathQuest3D from './MathQuest3D';
 import MathTutor from './MathTutor';
 import { FEATURE_NAMES, getRandomPraise } from '../utils/mathQuestState';
 import { playSound, playCrash, playPowerup, playCoinPitch, playTick, speakPedestrian, speakEquation, speak, primeSpeech, startBackgroundMusic, stopBackgroundMusic } from '../utils/sound';
-import { getAdaptiveProblem, recordPuzzleResult } from '../utils/profileStore';
+import { getAdaptiveProblem, recordPuzzleResult, recordScore, getLeaderboard } from '../utils/profileStore';
 import storyContent from '../utils/storyContent.json';
 
 // Skippable story cards: auto-advance one kid-safe line every ~2.2s, then onDone. Tap Skip anytime.
@@ -649,6 +649,7 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
   const [celebrateCount, setCelebrateCount] = useState(0);
   const [showIntroStory, setShowIntroStory] = useState(true); // skippable start-of-mission story
   const [userPaused, setUserPaused] = useState(false);        // player-triggered pause
+  const [scoreInfo, setScoreInfo] = useState(null);           // { score, highScore, isNew, board }
   const pauseGame = () => { if (phase !== 'run') return; engine.current.paused = true; setUserPaused(true); stopBackgroundMusic(); };
   const resumeGame = () => { setUserPaused(false); engine.current.paused = false; startBackgroundMusic(); };
   const [portalStory, setPortalStory] = useState(false);      // skippable portal-dive animation
@@ -877,6 +878,10 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
     const e = engine.current;
     onEarnReward(e.coins, earnedRef.current);
     stopBackgroundMusic();
+    // Score = coins + distance + a big bonus per friend freed (portal cleared).
+    const score = e.coins * 10 + Math.floor(e.distance) + (e.checkpointCount || 0) * 100;
+    const { highScore, isNew } = recordScore(score);
+    setScoreInfo({ score, highScore, isNew, board: getLeaderboard().slice(0, 5) });
     setPhase('done');
   };
 
@@ -1107,6 +1112,24 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
         <Overlay>
           <h2 style={{ color: '#16a34a', fontWeight: 900, fontSize: '1.8rem', margin: '0 0 6px' }}>🏁 Run Complete!</h2>
           <p style={{ color: '#475569', fontWeight: 700, margin: '0 0 6px' }}>You ran <b>{Math.floor(e.distance)}m</b> and collected <b>{e.coins}</b> 🪙</p>
+          {scoreInfo && (
+            <div style={{ margin: '6px 0 12px' }}>
+              <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#0369a1' }}>⭐ {scoreInfo.score}</div>
+              {scoreInfo.isNew
+                ? <div style={{ color: '#ca8a04', fontWeight: 900, fontSize: '1.1rem', animation: 'bounce 0.9s ease-in-out infinite' }}>🏆 NEW HIGH SCORE!</div>
+                : <div style={{ color: '#64748b', fontWeight: 700, fontSize: '0.95rem' }}>Best: {scoreInfo.highScore}</div>}
+              {scoreInfo.board && scoreInfo.board.length > 1 && (
+                <div style={{ marginTop: 10, background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: 14, padding: '8px 12px', textAlign: 'left', maxWidth: 300, marginInline: 'auto' }}>
+                  <div style={{ fontWeight: 900, color: '#334155', fontSize: '0.9rem', marginBottom: 4, textAlign: 'center' }}>🏆 Leaderboard</div>
+                  {scoreInfo.board.map((r, i) => (
+                    <div key={r.id} style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: i === 0 ? '#ca8a04' : '#475569', fontSize: '0.9rem', padding: '2px 0' }}>
+                      <span>{['🥇', '🥈', '🥉'][i] || `${i + 1}.`} {r.avatar} {r.name}</span><span>{r.highScore}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           {earnedRef.current.length > 0 && (
             <p style={{ color: '#7c3aed', fontWeight: 800, margin: '0 0 16px' }}>⚡ Power-ups won: {earnedRef.current.map(i => FEATURE_NAMES[i]).join(', ')}</p>
           )}
