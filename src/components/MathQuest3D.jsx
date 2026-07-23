@@ -3673,19 +3673,6 @@ export default function MathQuest3D({
                         >
                             🔄 Restart
                         </button>
-                        {stageNum < 20 && !sandboxMode && (
-                            <button
-                                className="bubble-btn warning"
-                                onClick={() => {
-                                    playSound('click');
-                                    onLevelComplete(0, 'mathquest3d', 0);
-                                }}
-                                disabled={isAnimating}
-                                style={{ ...btnStyle, background: '#fef08a', color: '#854d0e', borderColor: '#eab308' }}
-                            >
-                                ⏭️ Skip
-                            </button>
-                        )}
                     </div>
                     {/* Combo puzzles (bridge/hill/electricity) auto-check when a card is picked,
                         so the manual Check Answer button is hidden for them. */}

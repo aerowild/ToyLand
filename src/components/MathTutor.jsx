@@ -301,7 +301,6 @@ export default function MathTutor({ a, op, b, answer, onDone }) {
 
   const next = () => { if (step < lastIndex) setStep(step + 1); };
   const replay = () => { if (step === 0) sayFrame(0); else setStep(0); };
-  const skip = () => setStep(lastIndex);
   const ok = () => { try { window.speechSynthesis.cancel(); } catch (e) { /* ignore */ } if (onDone) onDone(); };
 
   const frame = plan.frames[step] || plan.frames[0];
@@ -334,8 +333,7 @@ export default function MathTutor({ a, op, b, answer, onDone }) {
           </div>
         ) : (
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 10 }}>
-            <button onClick={skip} style={{ fontFamily: 'inherit', fontWeight: 800, fontSize: '0.95rem', padding: '12px 18px', borderRadius: 14, border: 'none', background: '#64748b', color: 'white', cursor: 'pointer', boxShadow: '0 4px 0 #475569' }}>⏭️ Skip</button>
-            <button onClick={next} style={{ fontFamily: 'inherit', fontWeight: 900, fontSize: '1.05rem', padding: '12px 30px', borderRadius: 14, border: 'none', background: '#0ea5e9', color: 'white', cursor: 'pointer', boxShadow: '0 4px 0 #0284c7' }}>👉 Next step</button>
+            <button onClick={next} style={{ fontFamily: 'inherit', fontWeight: 900, fontSize: '1.05rem', padding: '12px 34px', borderRadius: 14, border: 'none', background: '#0ea5e9', color: 'white', cursor: 'pointer', boxShadow: '0 4px 0 #0284c7' }}>👉 Next step</button>
           </div>
         )}
       </div>
