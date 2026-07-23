@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-07-23 (feature batch: no-skip, timeouts, multi-combo, pause, scoring)
+- **Removed Skip** from the tutor (kid taps "Next" through every step) and from the 3D game control panel (no skipping a stage).
+- **Difficulty-scaled timeouts:** timed puzzles now give ~6s (≤10), 9s (11–15), 12s (16–20); **additions above 20 are never timed**.
+- **3D combo puzzles require ALL correct combinations** (multi-select): each correct pick banks with a green ✓ and "Found X of Y"; a wrong pick just warns; the stage is won only when every correct combo is found. Applies to bridge/hill/electricity.
+- **Pause/Resume** for the runner: a Pause button freezes the run + music with a full-screen Resume overlay.
+- **Scoring + high score + leaderboard:** each run scores (coins + distance + friends freed); the per-profile high score persists; the finish screen shows the score, "NEW HIGH SCORE!", and a cross-profile leaderboard (with 2+ players).
+
 ## 2026-07-22 (3D review follow-ups)
 - **Non-revealing feedback:** wrong-answer messages are now directional only ("A bit too big — try again!" / "So close — try again!"; area/fraction/sub_bridge/pattern variants) — they no longer print the exact remaining amount, so the child can't converge without doing the math.
 - **Electricity → combination cards:** the Balance/voltage stage now uses the same predefined combo cards as bridge/hill (consistency).
