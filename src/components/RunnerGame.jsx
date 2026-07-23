@@ -648,6 +648,9 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
   const [phase, setPhase] = useState('intro'); // intro, run, puzzle, dead, done, checkpoint, celebrate
   const [celebrateCount, setCelebrateCount] = useState(0);
   const [showIntroStory, setShowIntroStory] = useState(true); // skippable start-of-mission story
+  const [userPaused, setUserPaused] = useState(false);        // player-triggered pause
+  const pauseGame = () => { if (phase !== 'run') return; engine.current.paused = true; setUserPaused(true); stopBackgroundMusic(); };
+  const resumeGame = () => { setUserPaused(false); engine.current.paused = false; startBackgroundMusic(); };
   const [portalStory, setPortalStory] = useState(false);      // skippable portal-dive animation
   const [hud, setHud] = useState({ coins: 0, distance: 0, shields: 0 });
   const [puzzle, setPuzzle] = useState(null); // { reason: 'teleporter' | 'revive' }
@@ -1017,8 +1020,23 @@ export default function RunnerGame({ onExit, onEarnReward, features = [], unlock
           {hud.slowtime > 0 && <span style={{ background: '#ede9fe', border: '3px solid #a855f7', color: '#5b21b6', fontWeight: 900, padding: '6px 12px', borderRadius: 999 }}>🕒 {hud.slowtime}</span>}
           {hud.passthrough > 0 && <span style={{ background: '#f1f5f9', border: '3px solid #94a3b8', color: '#334155', fontWeight: 900, padding: '6px 12px', borderRadius: 999 }}>👻 {hud.passthrough}</span>}
         </div>
-        <button onClick={endRun} style={{ pointerEvents: 'auto', background: '#ef4444', color: 'white', border: '3px solid #b91c1c', borderRadius: 999, fontWeight: 900, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>✕ End Run</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {phase === 'run' && !userPaused && (
+            <button onClick={pauseGame} style={{ pointerEvents: 'auto', background: '#0ea5e9', color: 'white', border: '3px solid #0284c7', borderRadius: 999, fontWeight: 900, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>⏸️ Pause</button>
+          )}
+          <button onClick={endRun} style={{ pointerEvents: 'auto', background: '#ef4444', color: 'white', border: '3px solid #b91c1c', borderRadius: 999, fontWeight: 900, padding: '8px 16px', cursor: 'pointer', fontFamily: 'inherit' }}>✕ End Run</button>
+        </div>
       </div>
+
+      {/* PAUSE overlay */}
+      {userPaused && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 70, background: 'rgba(10,6,24,0.85)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: "'Fredoka',sans-serif" }}>
+          <div style={{ fontSize: '3.5rem' }}>⏸️</div>
+          <div style={{ color: '#fff', fontWeight: 900, fontSize: '2rem', marginBottom: 20 }}>Paused</div>
+          <button onClick={resumeGame} style={{ fontFamily: 'inherit', fontWeight: 900, fontSize: '1.3rem', padding: '14px 40px', borderRadius: 999, border: 'none', background: '#22c55e', color: 'white', cursor: 'pointer', boxShadow: '0 6px 0 #16a34a', marginBottom: 12 }}>▶️ Resume</button>
+          <button onClick={endRun} style={{ fontFamily: 'inherit', fontWeight: 800, fontSize: '1rem', padding: '10px 24px', borderRadius: 999, border: '2px solid rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.1)', color: '#fff', cursor: 'pointer' }}>✕ End Run</button>
+        </div>
+      )}
 
       {/* PORTAL CHARGE meter — fills as Robin's speed builds; portal opens at full (88 = BTTF wink) */}
       {phase === 'run' && (
